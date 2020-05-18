@@ -1,0 +1,9 @@
+{
+  "exhale": {
+    "sounds": [ {"name": "boundtotems:exhale" }]
+  },
+  "bind_shelf": {
+    "_comment": "This is a combination of 'MonsterGrowl' by EnragedTurkey, 'Creepy Evil Demon Monster Growl Halloween' by Tiffany Marz, and 'Demon/Monster Awoken' by Mr_KeybOred.",
+    "sounds": [{ "name": "boundtotems:bind_shelf" }]
+  }
+}

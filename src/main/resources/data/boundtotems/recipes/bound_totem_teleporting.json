@@ -1,0 +1,22 @@
+{
+  "result": {
+    "item": "boundtotems:bound_totem_teleporting"
+  },
+  "pattern": [
+    "epe",
+    "ptp",
+    "epe"
+  ],
+  "type": "boundtotems:bound_totem_teleporting",
+  "key": {
+    "t": {
+      "item": "boundtotems:bound_totem"
+    },
+    "e": {
+      "item": "minecraft:ender_eye"
+    },
+    "p": {
+      "item": "minecraft:ender_pearl"
+    }
+  }
+}

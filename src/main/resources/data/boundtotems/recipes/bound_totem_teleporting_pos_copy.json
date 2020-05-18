@@ -1,0 +1,14 @@
+{
+  "result": {
+    "item": "boundtotems:bound_totem_teleporting"
+  },
+  "type": "boundtotems:bound_totem_copy",
+  "ingredients": [
+    {
+      "item": "boundtotems:bound_totem_teleporting"
+    },
+    {
+      "item": "boundtotems:bound_totem_teleporting"
+    }
+  ]
+}

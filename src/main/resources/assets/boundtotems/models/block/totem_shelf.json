@@ -1,0 +1,39 @@
+{
+    "display": {
+        "gui": {
+            "rotation": [ 30, 45, 0 ],
+            "translation": [ 1.666, -4, 1.666 ],
+            "scale":[ 0.417, 0.417, 0.417 ]
+        },
+        "ground": {
+            "rotation": [ 0, 180, 0 ],
+            "translation": [ 0, 1.25, -1.5 ],
+            "scale":[ 0.25, 0.25, 0.25 ]
+        },
+        "fixed": {
+            "rotation": [ 0, 180, 0 ],
+            "translation": [ 0, -4, -3 ],
+            "scale":[ 0.5, 0.5, 0.5 ]
+        },
+        "thirdperson_righthand": {
+            "rotation": [ 75, 225, 0 ],
+            "translation": [ 0, 2.5, 0 ],
+            "scale": [ 0.25, 0.25, 0.25 ]
+        },
+        "firstperson_righthand": {
+            "rotation": [ 0, 315, 0 ],
+            "translation": [ 0, 0, 0 ],
+            "scale": [ 0.266, 0.266, 0.266 ]
+        },
+        "firstperson_lefthand": {
+            "rotation": [ 0, 315, 0 ],
+            "translation": [ 0, 0, 0 ],
+            "scale": [ 0.266, 0.266, 0.266 ]
+        }
+    },
+    "textures": {
+        "top": "block/stripped_oak_log_top",
+        "side": "block/stripped_oak_log",
+		"particle": "block/stripped_oak_log"
+    }
+}

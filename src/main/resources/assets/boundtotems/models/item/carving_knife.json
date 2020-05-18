@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "boundtotems:items/carving_knife",
+    "particle": "boundtotems:items/carving_knife"
+  }
+}

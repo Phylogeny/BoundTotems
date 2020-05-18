@@ -1,0 +1,14 @@
+{
+  "result": {
+    "item": "boundtotems:bound_totem"
+  },
+  "type": "boundtotems:bound_totem_copy",
+  "ingredients": [
+    {
+      "item": "minecraft:totem_of_undying"
+    },
+    {
+      "item": "boundtotems:bound_totem"
+    }
+  ]
+}

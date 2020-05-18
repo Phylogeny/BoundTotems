@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "boundtotems:totem_shelf",
+              "properties": {
+                "half": "lower"
+              }
+            }
+          ],
+          "name": "boundtotems:totem_shelf"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+	  "function": "boundtotems:remove_shelf_drop"
+    }
+  ]
+}

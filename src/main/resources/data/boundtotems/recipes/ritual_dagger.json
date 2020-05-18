@@ -1,0 +1,19 @@
+{
+  "result": {
+    "item": "boundtotems:ritual_dagger"
+  },
+  "pattern": [
+    "i",
+    "i",
+    "s"
+  ],
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "s": {
+      "tag": "forge:rods/wooden"
+    }
+  }
+}

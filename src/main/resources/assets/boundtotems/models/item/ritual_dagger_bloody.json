@@ -1,0 +1,6 @@
+{
+  "parent": "boundtotems:item/ritual_dagger",
+  "textures": {
+    "layer0": "boundtotems:items/ritual_dagger_bloody"
+  }
+}
