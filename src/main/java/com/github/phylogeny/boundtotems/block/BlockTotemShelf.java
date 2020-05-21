@@ -30,10 +30,7 @@ import net.minecraft.state.properties.DoubleBlockHalf;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
@@ -223,7 +220,8 @@ public class BlockTotemShelf extends Block
             BlockRayTraceResult targetShelf = shape.rayTrace(startPos, endPos, pos);
             VoxelShape shapeClosest = null;
             double distanceShortest = Double.MAX_VALUE;
-            Vec3d knifePos = ((TileEntityTotemShelf) te).getKnifePos();
+            TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
+            Vec3d knifePos = totemShelf.getKnifePos();
             if (knifePos != null)
             {
                 VoxelShape shapeKnife = SHAPE_KNIFE.withOffset(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ());
@@ -236,7 +234,7 @@ public class BlockTotemShelf extends Block
             }
             else if (context.getEntity() != null && (context.hasItem(ItemsMod.BOUND_TOTEM.get()) || context.hasItem(ItemsMod.BOUND_TOTEM_TELEPORTING.get()) || context.hasItem(Items.AIR)))
             {
-                IItemHandler inventory = CapabilityUtil.getInventory(te);
+                IItemHandler inventory = CapabilityUtil.getInventory(totemShelf);
                 if (inventory.isItemValid(0, ((LivingEntity) context.getEntity()).getHeldItemMainhand()))
                 {
                     for (int i = 0; i < inventory.getSlots(); i++)
@@ -433,7 +431,7 @@ public class BlockTotemShelf extends Block
         if (totemShelf.giveOrTakeKnife(state, world, pos, player, hand, stack, result))
             return ActionResultType.SUCCESS;
 
-        IItemHandler inventory = CapabilityUtil.getInventory(te);
+        IItemHandler inventory = CapabilityUtil.getInventory(totemShelf);
         ItemStack stackMain = player.getHeldItemMainhand();
         if (inventory.isItemValid(0, stackMain))
         {
@@ -483,7 +481,7 @@ public class BlockTotemShelf extends Block
             if (!knife.isEmpty())
                 InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), knife);
 
-            IItemHandler inventory = CapabilityUtil.getInventory(te);
+            IItemHandler inventory = CapabilityUtil.getInventory((TileEntityTotemShelf) te);
             for (int i = 0; i < inventory.getSlots(); i++)
             {
                 ItemStack stack = inventory.getStackInSlot(i);
@@ -510,5 +508,27 @@ public class BlockTotemShelf extends Block
     public float getBlockHardness(BlockState state, IBlockReader world, BlockPos pos)
     {
         return state.get(STAGE) > 5 ? 5F : 1.5F;
+    }
+
+    @Override
+    public boolean hasComparatorInputOverride(BlockState state)
+    {
+        return true;
+    }
+
+    @Override
+    public int getComparatorInputOverride(BlockState state, World world, BlockPos pos)
+    {
+        TileEntity te = world.getTileEntity(state.get(HALF) == DoubleBlockHalf.LOWER ? pos.up() : pos);
+        if (!(te instanceof TileEntityTotemShelf))
+            return 0;
+
+        IItemHandler inventory = CapabilityUtil.getInventory((TileEntityTotemShelf) te);
+        double input = 0;
+        double size = (double) inventory.getSlots();
+        for (int i = 0; i < size; i++)
+            input += inventory.getStackInSlot(i).isEmpty() ? 0 : 15 / size;
+
+        return MathHelper.floor(input);
     }
 }
