@@ -12,6 +12,7 @@ import net.minecraftforge.common.loot.LootModifier;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ShelfDropRemovalModifier extends LootModifier
 {
@@ -31,16 +32,8 @@ public class ShelfDropRemovalModifier extends LootModifier
     @Override
     protected List<ItemStack> doApply(List<ItemStack> generatedLoot, LootContext context)
     {
-        if (!shouldRemove)
-            return generatedLoot;
-
-        List<ItemStack> drops = new ArrayList<>();
-        generatedLoot.forEach(drop ->
-        {
-            if (!(drop.getItem() instanceof ItemTotemShelf))
-                drops.add(drop);
-        });
-        return drops;
+        return !shouldRemove ? generatedLoot :
+                generatedLoot.stream().filter(stack -> !(stack.getItem() instanceof ItemTotemShelf)).collect(Collectors.toList());
     }
 
     public static class Serializer extends GlobalLootModifierSerializer<ShelfDropRemovalModifier>
