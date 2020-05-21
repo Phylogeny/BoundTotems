@@ -49,7 +49,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class BlockTotemShelf extends Block
+public class BlockTotemShelf extends BlockWaterLoggable
 {
     public static final String NAME = "totem_shelf";
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -79,7 +79,7 @@ public class BlockTotemShelf extends Block
     public BlockTotemShelf(Properties properties)
     {
         super(properties);
-        setDefaultState(getStateContainer().getBaseState()
+        setDefaultState(getBaseState()
                 .with(FACING, Direction.NORTH)
                 .with(HALF, DoubleBlockHalf.LOWER)
                 .with(BINDING_STATE, BindingState.NOT_BOUND)
@@ -285,6 +285,7 @@ public class BlockTotemShelf extends Block
     public BlockState updatePostPlacement(BlockState state, Direction facing,
             BlockState facingState, IWorld world, BlockPos currentPos, BlockPos facingPos)
     {
+        super.updatePostPlacement(state, facing, facingState, world, currentPos, facingPos);
         if (preventPostPlacementCheck)
             return state;
 
@@ -301,9 +302,9 @@ public class BlockTotemShelf extends Block
     @Override
     @Nullable
     public BlockState getStateForPlacement(BlockItemUseContext context)
-    {    
+    {
         if (context.getPos().getY() < 255 && context.getWorld().getBlockState(context.getPos().up()).isReplaceable(context))
-            return getDefaultState().with(FACING, context.getPlacementHorizontalFacing().getOpposite());
+            return super.getStateForPlacement(context).with(FACING, context.getPlacementHorizontalFacing().getOpposite());
 
         return null;
     }
@@ -364,6 +365,7 @@ public class BlockTotemShelf extends Block
     @Override
     protected void fillStateContainer(Builder<Block, BlockState> builder)
     {
+        super.fillStateContainer(builder);
         builder.add(FACING, HALF, BINDING_STATE, STAGE);
     }
 
