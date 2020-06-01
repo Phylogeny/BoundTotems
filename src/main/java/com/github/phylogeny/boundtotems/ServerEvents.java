@@ -156,7 +156,7 @@ public class ServerEvents
      * Mimics LivingEntity#checkTotemDeathProtection to allow totems of
      * undying to prevent death from anywhere in a player's inventory.
      */
-    @SubscribeEvent(priority = EventPriority.LOW)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void preventDeath(LivingDeathEvent event)
     {
         LivingEntity entity = event.getEntityLiving();

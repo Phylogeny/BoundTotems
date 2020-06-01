@@ -23,3 +23,9 @@ logoFile="logo.png"
     versionRange="[1.15.2]"
     ordering="NONE"
     side="BOTH"
+[[dependencies.boundtotems]]
+    modId="hardcorerevival"
+    mandatory=false
+    versionRange="[1,)"
+    ordering="BEFORE"
+    side="BOTH"
