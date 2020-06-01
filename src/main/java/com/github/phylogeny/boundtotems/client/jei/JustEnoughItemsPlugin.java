@@ -63,7 +63,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
         recipes.add(new InWorldRecipe("bind_totem", guiHelper, 2, stackBloodyKnife, stackBoundKnife).setAdditionalInputs(Items.TOTEM_OF_UNDYING).setOutputs(stackTotemBound));
         recipes.add(new InWorldRecipe("totem_shelf_frame", guiHelper, 9, ItemsMod.CARVING_KNIFE.get()).setAdditionalInputs(Blocks.OAK_LOG, Blocks.STRIPPED_OAK_LOG).setOutputs(stackPlanks));
         recipes.add(new InWorldRecipe("totem_shelf", guiHelper, 5, stackPlanks).setAdditionalInputs(shelf).setOutputs(shelf));
-        recipes.add(new InWorldRecipe("bind_shelf", guiHelper, 4, stackBloodyKnife, stackBoundKnife).setAdditionalInputs(shelf).setOutputs(stackBoundKnife).setLangParameters(Config.SERVER.maxDistanceToShelf.get()));
+        recipes.add(new InWorldRecipe("bind_shelf", guiHelper, 4, stackBloodyKnife, stackBoundKnife).setAdditionalInputs(shelf).setOutputs(stackBoundKnife).setLangParameters(Config.SERVER.maxDistanceToShelf.get(), Config.SERVER.maxBoundShelves.get()));
         recipes.add(new InWorldRecipe("shelf_put_take_totems", guiHelper, 6, stackTotemBound, stackTotemBoundTeleporting).setAdditionalInputs(shelf).setOutputs(stackTotemBound, stackTotemBoundTeleporting));
         registration.addRecipes(recipes, InWorldRecipeCategory.UID);
 

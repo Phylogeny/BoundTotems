@@ -11,7 +11,6 @@ import com.github.phylogeny.boundtotems.network.PacketNetwork;
 import com.github.phylogeny.boundtotems.network.packet.PacketTotemAnimation;
 import com.github.phylogeny.boundtotems.network.packet.PacketTotemParticlesAndSound;
 import com.github.phylogeny.boundtotems.tileentity.TileEntityTotemShelf;
-import com.github.phylogeny.boundtotems.util.CapabilityUtil;
 import com.github.phylogeny.boundtotems.util.EntityUtil.LocationTeleport;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import com.github.phylogeny.boundtotems.util.ReflectionUtil;
@@ -29,10 +28,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerInteractionManager;
 import net.minecraft.stats.Stats;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
@@ -40,8 +37,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.event.TickEvent;
@@ -61,7 +56,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -408,62 +402,26 @@ public class ServerEvents
     private static ItemStack getTotemFromShelf(LivingEntity entity)
     {
         AtomicReference<ItemStack> stackRef = new AtomicReference<>(ItemStack.EMPTY);
-        MinecraftServer server = entity.world.getServer();
-        if (server == null)
-            return stackRef.get();
-
-        Hashtable<DimensionType, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
-        Set<DimensionType> dimensions = positionTable.keySet();
-        Iterator<DimensionType>  iteratorDim = dimensions.iterator();
         boolean performAudit = entity.world.rand.nextInt(20) == 0;
-        while (iteratorDim.hasNext())
+        TileEntityTotemShelf.visitTotemShelves(entity, (world, shelf) ->
         {
-            DimensionType dimension = iteratorDim.next();
-            World world = server.getWorld(dimension);
-            if (world == null)
-                continue;
-
-            Set<BlockPos> positions = positionTable.get(dimension);
-            if (positions == null)
+            if (stackRef.get().isEmpty())
             {
-                iteratorDim.remove();
-                continue;
-            }
-            Iterator<BlockPos> iteratorPos = positions.iterator();
-            while (iteratorPos.hasNext())
-            {
-                BlockPos pos = iteratorPos.next();
-                TileEntity te = world.getTileEntity(pos);
-                boolean foundShelf = false;
-                if (te instanceof TileEntityTotemShelf)
+                ItemStackHandler inventory = shelf.getInventory();
+                ItemStack stack;
+                for (int i = 0; i < inventory.getSlots(); i++)
                 {
-                    TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
-                    if (entity.getUniqueID().equals(totemShelf.getBoundEntityID()))
+                    stack = inventory.extractItem(i, 1, true);
+                    if (stack.getItem() instanceof ItemBoundTotem && entity.getUniqueID().equals(NBTUtil.getBoundEntityId(stack)))
                     {
-                        foundShelf = true;
-                        if (stackRef.get().isEmpty())
-                        {
-                            ItemStackHandler inventory = totemShelf.getInventory();
-                            ItemStack stack;
-                            for (int i = 0; i < inventory.getSlots(); i++)
-                            {
-                                stack = inventory.extractItem(i, 1, true);
-                                if (stack.getItem() instanceof ItemBoundTotem && entity.getUniqueID().equals(NBTUtil.getBoundEntityId(stack)))
-                                {
-                                    stackRef.set(inventory.extractItem(i, 1, false));
-                                    if (!performAudit)
-                                        return stackRef.get();
-                                }
-                            }
-                        }
+                        stackRef.set(inventory.extractItem(i, 1, false));
+                        if (!performAudit)
+                            return new TileEntityTotemShelf.ShelfVisitationResult(false, false);
                     }
                 }
-                if (!foundShelf)
-                    iteratorPos.remove();
             }
-            if (positions.isEmpty())
-                iteratorDim.remove();
-        }
+            return new TileEntityTotemShelf.ShelfVisitationResult(false, true);
+        });
         return stackRef.get();
     }
 }

@@ -12,29 +12,32 @@ import java.util.function.Supplier;
 public class PacketShelfSmokeParticles
 {
     private AxisAlignedBB box;
+    private boolean addFlames;
 
     public PacketShelfSmokeParticles() {}
 
-    public PacketShelfSmokeParticles(AxisAlignedBB box)
+    public PacketShelfSmokeParticles(AxisAlignedBB box, boolean addFlames)
     {
         this.box = box;
+        this.addFlames = addFlames;
     }
 
     public static void encode(PacketShelfSmokeParticles msg, PacketBuffer buf)
     {
         PacketBufferUtil.writeAABB(buf, msg.box);
+        buf.writeBoolean(msg.addFlames);
     }
 
     public static PacketShelfSmokeParticles decode(PacketBuffer buf)
     {
-        return new PacketShelfSmokeParticles(PacketBufferUtil.readAABB(buf));
+        return new PacketShelfSmokeParticles(PacketBufferUtil.readAABB(buf), buf.readBoolean());
     }
 
     public static class Handler
     {
         public static void handle(PacketShelfSmokeParticles msg, Supplier<NetworkEvent.Context> ctx)
         {
-            ctx.get().enqueueWork(() -> BlockTotemShelf.spawnShelfSmokeParticles(ClientEvents.getWorld(), msg.box));
+            ctx.get().enqueueWork(() -> BlockTotemShelf.spawnShelfSmokeParticles(ClientEvents.getWorld(), msg.box, msg.addFlames));
             ctx.get().setPacketHandled(true);
         }
     }

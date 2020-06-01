@@ -4,6 +4,7 @@ import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.Config;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf.BindingState;
+import com.github.phylogeny.boundtotems.block.PositionsTotemShelf;
 import com.github.phylogeny.boundtotems.block.ShelfDropRemovalModifier;
 import com.github.phylogeny.boundtotems.init.SoundsMod;
 import com.github.phylogeny.boundtotems.init.TileEntitiesMod;
@@ -12,6 +13,7 @@ import com.github.phylogeny.boundtotems.item.ItemRitualDagger;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
 import com.github.phylogeny.boundtotems.network.packet.PacketAddOrRemoveKnife;
 import com.github.phylogeny.boundtotems.util.CapabilityUtil;
+import com.github.phylogeny.boundtotems.util.EntityUtil;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -24,6 +26,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.properties.DoubleBlockHalf;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
@@ -46,10 +49,9 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 
 public class TileEntityTotemShelf extends TileEntity
 {
@@ -169,7 +171,8 @@ public class TileEntityTotemShelf extends TileEntity
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack)
             {
-                return stack.isEmpty() || knifePos == null && boundEntityID != null && stack.getItem() instanceof ItemBoundTotem && boundEntityID.equals(NBTUtil.getBoundEntityId(stack));
+                return stack.isEmpty() || knifePos == null && boundEntityID != null && stack.getItem() instanceof ItemBoundTotem
+                        && boundEntityID.equals(NBTUtil.getBoundEntityId(stack)) && !world.getBlockState(pos).get(BlockTotemShelf.CHARRED);
             }
         };
     }
@@ -273,8 +276,38 @@ public class TileEntityTotemShelf extends TileEntity
             ShelfDropRemovalModifier.setRemoval(true);
             world.setBlockState(pos, Blocks.AIR.getDefaultState());
             ShelfDropRemovalModifier.setRemoval(false);
-            BlockTotemShelf.addShelfBreakingEffects(world, pos, state);
+            BlockTotemShelf.addShelfBreakingEffects(world, pos, state, false);
             return;
+        }
+        AtomicInteger count = new AtomicInteger();
+        visitTotemShelves(entity, (world, shelf) ->
+        {
+            count.incrementAndGet();
+            return new ShelfVisitationResult(false, true);
+        });
+        while (count.get() >= Config.SERVER.maxBoundShelves.get())
+        {
+            int burnIndex = world.rand.nextInt(count.get()) + 1;
+            AtomicInteger countBurn = new AtomicInteger();
+            visitTotemShelves(entity, (world, shelf) ->
+            {
+                boolean forceRemoval = countBurn.incrementAndGet() == burnIndex;
+                if (forceRemoval)
+                {
+                    BlockState statePrimary = world.getBlockState(shelf.pos);
+                    PositionsTotemShelf positions = BlockTotemShelf.getTotemShelfPositions(statePrimary, world, shelf.pos);
+                    world.setBlockState(shelf.pos, statePrimary.with(BlockTotemShelf.CHARRED, true));
+                    if (positions != null)
+                    {
+                        BlockPos posSecondary = positions.getPosOffset();
+                        world.setBlockState(posSecondary, world.getBlockState(posSecondary).with(BlockTotemShelf.CHARRED, true));
+                    }
+                    EntityUtil.spawnLightning(statePrimary, world, shelf.pos);
+                    BlockTotemShelf.addShelfBreakingEffects(world, shelf.pos, statePrimary, true);
+                    count.decrementAndGet();
+                }
+                return new ShelfVisitationResult(forceRemoval, !forceRemoval);
+            });
         }
         NBTUtil.bindKnife(knife.getOrCreateTag());
         boundEntityID = entity.getUniqueID();
@@ -286,6 +319,74 @@ public class TileEntityTotemShelf extends TileEntity
 
         positions.add(pos);
         positionTable.put(dimension, positions);
+    }
+
+    public static void visitTotemShelves(LivingEntity entity, BiFunction<ServerWorld, TileEntityTotemShelf, ShelfVisitationResult> action)
+    {
+        MinecraftServer server = entity.world.getServer();
+        if (server == null)
+            return;
+
+        Hashtable<DimensionType, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
+        Set<DimensionType> dimensions = positionTable.keySet();
+        Iterator<DimensionType> iteratorDim = dimensions.iterator();
+        while (iteratorDim.hasNext())
+        {
+            DimensionType dimension = iteratorDim.next();
+            ServerWorld world = server.getWorld(dimension);
+            if (world == null)
+                continue;
+
+            Set<BlockPos> positions = positionTable.get(dimension);
+            if (positions == null)
+            {
+                iteratorDim.remove();
+                continue;
+            }
+            Iterator<BlockPos> iteratorPos = positions.iterator();
+            while (iteratorPos.hasNext())
+            {
+                BlockPos pos = iteratorPos.next();
+                TileEntity te = world.getTileEntity(pos);
+                boolean foundShelf = false;
+                if (te instanceof TileEntityTotemShelf)
+                {
+                    TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
+                    if (entity.getUniqueID().equals(totemShelf.getBoundEntityID()) && !world.getBlockState(pos).get(BlockTotemShelf.CHARRED))
+                    {
+                        ShelfVisitationResult result = action.apply(world, totemShelf);
+                        foundShelf = !result.forceRemoval();
+                        if (!result.continueVisiting())
+                            return;
+                    }
+                }
+                if (!foundShelf)
+                    iteratorPos.remove();
+            }
+            if (positions.isEmpty())
+                iteratorDim.remove();
+        }
+    }
+
+    public static class ShelfVisitationResult
+    {
+        private boolean forceRemoval, continueVisiting;
+
+        public ShelfVisitationResult(boolean forceRemoval, boolean continueVisiting)
+        {
+            this.forceRemoval = forceRemoval;
+            this.continueVisiting = continueVisiting;
+        }
+
+        public boolean forceRemoval()
+        {
+            return forceRemoval;
+        }
+
+        public boolean continueVisiting()
+        {
+            return continueVisiting;
+        }
     }
 
     @Override

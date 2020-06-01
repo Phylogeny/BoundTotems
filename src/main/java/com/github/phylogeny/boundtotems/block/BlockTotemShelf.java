@@ -21,6 +21,7 @@ import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.particles.ParticleTypes;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IntegerProperty;
@@ -56,6 +57,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public static final EnumProperty<BindingState> BINDING_STATE = EnumProperty.create("binding_state", BindingState.class);
     public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 10);
+    public static final BooleanProperty CHARRED = BooleanProperty.create("charred");
     public static final VoxelShape SHAPE_KNIFE =  VoxelShapes.create(-0.15, -0.15, -0.15, 0.15, 0.15, 0.15);
     public static final EnumMap<Direction, EnumMap<DoubleBlockHalf, VoxelShape[]>> SHAPES_TOTEMS;
     public final ImmutableMap<BlockState, VoxelShape> SHAPES, SHAPES_RAYTRACE;
@@ -83,7 +85,8 @@ public class BlockTotemShelf extends BlockWaterLoggable
                 .with(FACING, Direction.NORTH)
                 .with(HALF, DoubleBlockHalf.LOWER)
                 .with(BINDING_STATE, BindingState.NOT_BOUND)
-                .with(STAGE, 10));
+                .with(STAGE, 10)
+                .with(CHARRED, false));
         SHAPES = VoxelShapeUtil.generateShapes(getStateContainer().getValidStates(), FACING, state ->
         {
             assert state != null;
@@ -341,21 +344,21 @@ public class BlockTotemShelf extends BlockWaterLoggable
             }
         }
         if (state.get(BINDING_STATE) != BindingState.NOT_BOUND && !world.isRemote)
-            addShelfBreakingEffects(world, pos, state);
+            addShelfBreakingEffects(world, pos, state, false);
 
         super.onBlockHarvested(world, pos, state, player);
     }
 
-    public static void addShelfBreakingEffects(World world, BlockPos pos, BlockState state)
+    public static void addShelfBreakingEffects(World world, BlockPos pos, BlockState state, boolean addFlames)
     {
         world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundsMod.EXHALE.get(), SoundCategory.MASTER, 1F, 2.4F - world.rand.nextFloat() * 1F);
-        PacketNetwork.sendToAllAround(new PacketShelfSmokeParticles(state.getCollisionShape(world, pos, null).getBoundingBox().offset(pos)), world, pos);
+        PacketNetwork.sendToAllAround(new PacketShelfSmokeParticles(state.getCollisionShape(world, pos, null).getBoundingBox().offset(pos).grow(0.1), addFlames), world, pos);
     }
 
-    public static void spawnShelfSmokeParticles(World world, AxisAlignedBB box)
+    public static void spawnShelfSmokeParticles(World world, AxisAlignedBB box, boolean addFlames)
     {
-        for (int i = 0; i < 12; i++)
-            world.addParticle(ParticleTypes.LARGE_SMOKE,
+        for (int i = 0; i < (addFlames ? 36 : 24); i++)
+            world.addParticle(addFlames && i % 3 == 0 ? ParticleTypes.FLAME : ParticleTypes.LARGE_SMOKE,
                     box.minX + (box.maxX - box.minX) * world.rand.nextDouble(),
                     box.minY + (box.maxY - box.minY) * world.rand.nextDouble(),
                     box.minZ + (box.maxZ - box.minZ) * world.rand.nextDouble(),
@@ -366,7 +369,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
     protected void fillStateContainer(Builder<Block, BlockState> builder)
     {
         super.fillStateContainer(builder);
-        builder.add(FACING, HALF, BINDING_STATE, STAGE);
+        builder.add(FACING, HALF, BINDING_STATE, STAGE, CHARRED);
     }
 
     @Override

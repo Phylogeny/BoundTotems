@@ -5,7 +5,6 @@ import com.github.phylogeny.boundtotems.capability.IShelfPositions;
 import com.github.phylogeny.boundtotems.capability.ShelfPositionsProvider;
 import com.github.phylogeny.boundtotems.tileentity.TileEntityTotemShelf;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 

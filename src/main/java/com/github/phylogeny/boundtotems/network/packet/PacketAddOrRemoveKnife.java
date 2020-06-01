@@ -71,7 +71,7 @@ public class PacketAddOrRemoveKnife
                             ((TileEntityTotemShelf) te).addKnife(msg.knifePos, msg.knifeDirection, msg.knifeStack);
                         else
                         {
-                            ClientEvents.addKnifeRemovalEffects(msg.knifePos);
+                            ClientEvents.addKnifeRemovalEffects(msg.knifePos, state);
                             ((TileEntityTotemShelf) te).removeKnife();
                         }
                     }

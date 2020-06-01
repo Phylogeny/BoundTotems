@@ -1,7 +1,6 @@
 package com.github.phylogeny.boundtotems.client;
 
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
-import com.github.phylogeny.boundtotems.block.BlockTotemShelf.BindingState;
 import com.github.phylogeny.boundtotems.init.BlocksMod;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
@@ -87,10 +86,9 @@ public class ClientEvents
         return Minecraft.getInstance().player;
     }
 
-    public static void addKnifeRemovalEffects(Vec3d knifePos)
+    public static void addKnifeRemovalEffects(Vec3d knifePos, BlockState state)
     {
         BlockPos pos = new BlockPos(knifePos);
-        BlockState state = BlocksMod.TOTEM_SHELF.get().getDefaultState().with(BlockTotemShelf.STAGE, 10).with(BlockTotemShelf.BINDING_STATE, BindingState.BOUND);
         double x = knifePos.x - pos.getX();
         double y = knifePos.y - pos.getY();
         double z = knifePos.z - pos.getZ();

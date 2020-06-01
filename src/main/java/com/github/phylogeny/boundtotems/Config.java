@@ -2,10 +2,7 @@ package com.github.phylogeny.boundtotems;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
-import net.minecraftforge.common.ForgeConfigSpec.Builder;
-import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
-import net.minecraftforge.common.ForgeConfigSpec.DoubleValue;
+import net.minecraftforge.common.ForgeConfigSpec.*;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
@@ -35,6 +32,7 @@ public class Config
         public final ConfigValue<List<? extends String>> potionEffects;
         public final DoubleValue health, maxDistanceToShelf;
         public final BooleanValue preventCreativeModeDeath, clearPotionEffects, spawnParticles, playSound, playAnimation, setHealthToPercentageOfMax;
+        public final IntValue maxBoundShelves;
 
         public enum InventorySearch
         {
@@ -103,6 +101,14 @@ public class Config
                             "shelf to that entity for the binding to be successful."))
                     .translation(LANG_KEY + "shelf.distance")
                     .defineInRange("Max Distance To Shelf", 10, 0, Double.MAX_VALUE);
+
+            maxBoundShelves = builder
+                    .comment(format("Specifies the maximum number of shelves that can be bound to an entity at a time. If an additional shelf " +
+                            "is bound once the max has been reached, a randomly selected currently bound shelf will be struck with lightning and converted " +
+                            "into a useless charred shelf. Items can be taken from a charred shelf but cannot be placed in it, and any totems it will " +
+                            "have no effect as long as they remain in it."))
+                    .translation(LANG_KEY + "shelf.max")
+                    .defineInRange("Max Bound Shelves", 10, 1, Integer.MAX_VALUE);
 
             build();
         }
