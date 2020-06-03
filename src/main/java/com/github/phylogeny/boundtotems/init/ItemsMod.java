@@ -3,17 +3,19 @@ package com.github.phylogeny.boundtotems.init;
 import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import com.github.phylogeny.boundtotems.item.*;
+import com.google.common.base.Suppliers;
 import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.item.*;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ItemsMod
 {
@@ -25,6 +27,26 @@ public class ItemsMod
     public static final RegistryObject<ItemCarvingKnife> CARVING_KNIFE = registerItem("carving_knife", ItemCarvingKnife::new);
     public static final RegistryObject<ItemPlank> PLANK = registerItem("plank", ItemPlank::new);
     public static final RegistryObject<ItemTotemShelf> TOTEM_SHELF_ITEM = registerBlockItem(BlockTotemShelf.NAME, BlocksMod.TOTEM_SHELF, ItemTotemShelf::new);
+    public static final RegistryObject<ItemBoundCompass> BOUND_COMPASS = registerItem("bound_compass", ItemBoundCompass::new);
+
+    private static final Supplier<Map<Item, Item>> IN_WORLD_ITEM_CONVERSIONS = Suppliers.memoize(() ->
+    {
+        Map<Item, Item> map = new HashMap<>();
+        map.put(Items.TOTEM_OF_UNDYING, BOUND_TOTEM.get());
+        map.put(Items.COMPASS, BOUND_COMPASS.get());
+        return map;
+    });
+
+    public static ItemStack getBoundItem(ItemEntity entityTotem)
+    {
+        if (entityTotem != null)
+        {
+            Item item = IN_WORLD_ITEM_CONVERSIONS.get().get(entityTotem.getItem().getItem());
+            if (item != null)
+                return new ItemStack(item);
+        }
+        return ItemStack.EMPTY;
+    }
 
     private static <I extends Item> RegistryObject<I> registerItem(String name, Function<Item.Properties, I> function)
     {

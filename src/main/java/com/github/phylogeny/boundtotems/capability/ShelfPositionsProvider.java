@@ -33,12 +33,22 @@ public class ShelfPositionsProvider implements ICapabilitySerializable<INBT>
     @Override
     public INBT serializeNBT()
     {
-        return CAPABILITY.getStorage().writeNBT(CAPABILITY, getCapability(), null);
+        return serializeNBT(getCapability());
+    }
+
+    public static INBT serializeNBT(IShelfPositions positions)
+    {
+        return CAPABILITY.getStorage().writeNBT(CAPABILITY, positions, null);
     }
 
     @Override
     public void deserializeNBT(INBT nbt)
     {
-        CAPABILITY.getStorage().readNBT(CAPABILITY, getCapability(), null, nbt);
+        deserializeNBT(nbt, getCapability());
+    }
+
+    public static void deserializeNBT(INBT nbt, IShelfPositions positions)
+    {
+        CAPABILITY.getStorage().readNBT(CAPABILITY, positions, null, nbt);
     }
 }

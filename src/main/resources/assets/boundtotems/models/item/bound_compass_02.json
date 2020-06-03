@@ -1,0 +1,6 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "boundtotems:items/bound_compass_02"
+    }
+}

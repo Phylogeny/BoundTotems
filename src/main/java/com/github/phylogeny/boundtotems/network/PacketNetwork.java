@@ -37,6 +37,7 @@ public class PacketNetwork
         registerMessage(PacketAddGhost.class, PacketAddGhost::encode, PacketAddGhost::decode, PacketAddGhost.Handler::handle);
         registerMessage(PacketTotemShelfCarveEffects.class, PacketTotemShelfCarveEffects::encode, PacketTotemShelfCarveEffects::decode, PacketTotemShelfCarveEffects.Handler::handle);
         registerMessage(PacketShelfSmokeParticles.class, PacketShelfSmokeParticles::encode, PacketShelfSmokeParticles::decode, PacketShelfSmokeParticles.Handler::handle);
+        registerMessage(PacketSyncShelfCap.class, PacketSyncShelfCap::encode, PacketSyncShelfCap::decode, PacketSyncShelfCap.Handler::handle);
 
         // Both sides
         registerMessage(PacketAddOrRemoveKnife.class, PacketAddOrRemoveKnife::encode, PacketAddOrRemoveKnife::decode, PacketAddOrRemoveKnife.Handler::handle);

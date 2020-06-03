@@ -30,7 +30,7 @@ public class Config
         private static final String LANG_KEY = Config.LANG_KEY + ".server.";
         public final ConfigValue<InventorySearch> inventorySearch;
         public final ConfigValue<List<? extends String>> potionEffects;
-        public final DoubleValue health, maxDistanceToShelf;
+        public final DoubleValue health, maxDistanceToShelf, boundCompasssSyncInterval;
         public final BooleanValue preventCreativeModeDeath, clearPotionEffects, spawnParticles, playSound, playAnimation, setHealthToPercentageOfMax;
         public final IntValue maxBoundShelves;
 
@@ -109,6 +109,12 @@ public class Config
                             "have no effect as long as they remain in it."))
                     .translation(LANG_KEY + "shelf.max")
                     .defineInRange("Max Bound Shelves", 10, 1, Integer.MAX_VALUE);
+
+            boundCompasssSyncInterval = builder
+                    .comment(format("Specifies the time in seconds between syncing of the client's bound shelf positions to the server while " +
+                            "holding a bound compass."))
+                    .translation(LANG_KEY + "compass.sync")
+                    .defineInRange("Bound Compass Sync Interval", 5, 0.05, Double.MAX_VALUE);
 
             build();
         }

@@ -21,7 +21,6 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
-import net.minecraft.item.Items;
 import net.minecraft.util.*;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
@@ -100,11 +99,12 @@ public class ItemRitualDagger extends Item
         else if (NBTUtil.hasBoundEntity(stack))
         {
             ItemEntity entityTotem = EntityUtil.rayTraceEntities(world, player, ItemEntity.class, box -> box.expand(0, 0.25, 0));
-            if (entityTotem != null && entityTotem.getItem().getItem() == Items.TOTEM_OF_UNDYING)
+            ItemStack stackBound = ItemsMod.getBoundItem(entityTotem);
+            if (!stackBound.isEmpty())
             {
                 if (!world.isRemote)
                 {
-                    entityTotem.setItem(NBTUtil.copyBoundEntity(stack, new ItemStack(ItemsMod.BOUND_TOTEM.get())));
+                    entityTotem.setItem(NBTUtil.copyBoundEntity(stack, stackBound));
                     sendGhostPacket(player, entityTotem);
                 }
                 result = ActionResultType.SUCCESS;

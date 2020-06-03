@@ -52,8 +52,10 @@ public class JustEnoughItemsPlugin implements IModPlugin
         stackBoundKnife.setTag(nbtBound);
         ItemStack stackTotemBound = new ItemStack(ItemsMod.BOUND_TOTEM.get());
         ItemStack stackTotemBoundTeleporting = new ItemStack(ItemsMod.BOUND_TOTEM_TELEPORTING.get());
+        ItemStack stackCompassBound = new ItemStack(ItemsMod.BOUND_COMPASS.get());
         stackTotemBound.setTag(nbtBloody);
         stackTotemBoundTeleporting.setTag(nbtBloody);
+        stackCompassBound.setTag(nbtBloody);
         ItemStack stackPlanks = new ItemStack(ItemsMod.PLANK.get(), 4);
 
         IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
@@ -65,6 +67,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
         recipes.add(new InWorldRecipe("totem_shelf", guiHelper, 5, stackPlanks).setAdditionalInputs(shelf).setOutputs(shelf));
         recipes.add(new InWorldRecipe("bind_shelf", guiHelper, 4, stackBloodyKnife, stackBoundKnife).setAdditionalInputs(shelf).setOutputs(stackBoundKnife).setLangParameters(Config.SERVER.maxDistanceToShelf.get(), Config.SERVER.maxBoundShelves.get()));
         recipes.add(new InWorldRecipe("shelf_put_take_totems", guiHelper, 6, stackTotemBound, stackTotemBoundTeleporting).setAdditionalInputs(shelf).setOutputs(stackTotemBound, stackTotemBoundTeleporting));
+        recipes.add(new InWorldRecipe("bind_compass", guiHelper, 2, stackBloodyKnife, stackBoundKnife).setAdditionalInputs(Items.COMPASS).setOutputs(stackCompassBound));
         registration.addRecipes(recipes, InWorldRecipeCategory.UID);
 
         String allowedTotemLocations = I18n.format(LangUtil.join(ITEM_INFO_LANG_KEY, Config.SERVER.inventorySearch.get().name().toLowerCase()));
@@ -74,6 +77,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
         addItemInfo(registration, ItemsMod.CARVING_KNIFE);
         addItemInfo(registration, ItemsMod.PLANK);
         addItemInfo(registration, ItemsMod.TOTEM_SHELF_ITEM, allowedTotemLocations);
+        addItemInfo(registration, ItemsMod.BOUND_COMPASS);
     }
 
     private static <I extends Item> void addItemInfo(IRecipeRegistration registration, RegistryObject<I> item, Object... parameters)
