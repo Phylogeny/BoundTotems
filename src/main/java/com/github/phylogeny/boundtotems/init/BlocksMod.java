@@ -6,6 +6,7 @@ import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.material.MaterialColor;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -21,11 +22,11 @@ public class BlocksMod
 
     private static <T extends Block> RegistryObject<T> register(String name, Function<Block.Properties, T> factory)
     {
-        return register(name, factory, Material.WOOD, SoundType.WOOD, 2F);
+        return register(name, factory, Material.WOOD, MaterialColor.WOOD, SoundType.WOOD, 2F);
     }
 
-    private static <T extends Block> RegistryObject<T> register(String name, Function<Block.Properties, T> factory, Material material, SoundType sound, float hardnessAndResistance)
+    private static <T extends Block> RegistryObject<T> register(String name, Function<Block.Properties, T> factory, Material material, MaterialColor color, SoundType sound, float hardnessAndResistance)
     {
-        return BLOCKS.register(name, () -> factory.apply(Block.Properties.create(material).sound(sound).hardnessAndResistance(hardnessAndResistance)));
+        return BLOCKS.register(name, () -> factory.apply(Block.Properties.create(material, color).sound(sound).hardnessAndResistance(hardnessAndResistance)));
     }
 }
