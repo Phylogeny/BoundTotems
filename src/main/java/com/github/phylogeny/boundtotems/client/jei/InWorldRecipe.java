@@ -35,7 +35,7 @@ public class InWorldRecipe
         this.inputs.add(Arrays.asList(inputs));
         langKey = LangUtil.join(InWorldRecipeCategory.LANG_KEY_PREFIX, "recipe", name);
         slides = IntStream.range(0, slideCount).mapToObj(i ->
-                new ResourceLocation(BoundTotems.MOD_ID, "textures/jei/" + name + "_" + i + ".png")).collect(Collectors.toList());
+                BoundTotems.getResourceLoc("textures/jei/" + name + "_" + i + ".png")).collect(Collectors.toList());
         if (slideCount > 1)
             timer = guiHelper.createTickTimer(slideCount * 15, slideCount - 1, false);
     }

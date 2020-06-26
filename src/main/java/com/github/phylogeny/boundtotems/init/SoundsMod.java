@@ -16,6 +16,6 @@ public class SoundsMod
 
     private static RegistryObject<SoundEvent> register(String name)
     {
-        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(BoundTotems.MOD_ID, name)));
+        return SOUNDS.register(name, () -> new SoundEvent(BoundTotems.getResourceLoc(name)));
     }
 }

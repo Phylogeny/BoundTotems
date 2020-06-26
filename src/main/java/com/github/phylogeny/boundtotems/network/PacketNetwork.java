@@ -23,7 +23,7 @@ public class PacketNetwork
 {
     private static int packetId = 0;
     private static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder
-            .named(new ResourceLocation(BoundTotems.MOD_ID, "channel_main"))
+            .named(BoundTotems.getResourceLoc("channel_main"))
             .clientAcceptedVersions(version -> true)
             .serverAcceptedVersions(version -> true)
             .networkProtocolVersion(() -> "1.0")

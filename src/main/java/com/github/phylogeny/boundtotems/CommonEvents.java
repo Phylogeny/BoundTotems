@@ -19,8 +19,8 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 @EventBusSubscriber
 public class CommonEvents
 {
-    private static final ResourceLocation LOOT_TABLE = new ResourceLocation(BoundTotems.MOD_ID, "chests/mod_tools");
-    private static final ResourceLocation LOOT_TABLE_MANSION = new ResourceLocation(BoundTotems.MOD_ID, LootTables.CHESTS_WOODLAND_MANSION.getPath());
+    private static final ResourceLocation LOOT_TABLE = BoundTotems.getResourceLoc("chests/mod_tools");
+    private static final ResourceLocation LOOT_TABLE_MANSION = BoundTotems.getResourceLoc(LootTables.CHESTS_WOODLAND_MANSION.getPath());
 
     @SubscribeEvent
     public static void swapStrippedOakBlocks(PlayerInteractEvent.LeftClickBlock event)

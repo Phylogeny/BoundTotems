@@ -29,8 +29,8 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
     public static final String NAME = "in_world_crafting";
     public static final String LANG_KEY_PREFIX = LangUtil.getKey(ModIds.JEI_ID, NAME);
     private static final String LANG_KEY = LANG_KEY_PREFIX + ".category";
-    public static final ResourceLocation UID = new ResourceLocation(BoundTotems.MOD_ID, NAME);
-    private static final ResourceLocation TEXTURE_GUI = new ResourceLocation(BoundTotems.MOD_ID, "textures/jei/in_world_crafting_gui.png");
+    public static final ResourceLocation UID = BoundTotems.getResourceLoc(NAME);
+    private static final ResourceLocation TEXTURE_GUI = BoundTotems.getResourceLoc("textures/jei/in_world_crafting_gui.png");
     private final IDrawable background, backgroundSlot, arrow;
     private final IGuiHelper guiHelper;
 

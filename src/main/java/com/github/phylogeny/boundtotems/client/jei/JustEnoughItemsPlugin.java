@@ -35,7 +35,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
     @Override
     public ResourceLocation getPluginUid()
     {
-        return new ResourceLocation(BoundTotems.MOD_ID, ModIds.JEI_ID);
+        return BoundTotems.getResourceLoc(ModIds.JEI_ID);
     }
 
     @Override

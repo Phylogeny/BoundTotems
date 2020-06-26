@@ -28,7 +28,7 @@ public class ShelfPositionsEvents
     public static void attachCapabilities(AttachCapabilitiesEvent<Entity> event)
     {
         if (event.getObject() instanceof LivingEntity)
-            event.addCapability(new ResourceLocation(BoundTotems.MOD_ID, "shelf_dimensions"), new ShelfPositionsProvider());
+            event.addCapability(BoundTotems.getResourceLoc("shelf_dimensions"), new ShelfPositionsProvider());
     }
 
     @SubscribeEvent

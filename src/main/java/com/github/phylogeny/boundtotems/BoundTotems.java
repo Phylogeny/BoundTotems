@@ -4,6 +4,7 @@ import com.github.phylogeny.boundtotems.capability.ShelfPositionsEvents;
 import com.github.phylogeny.boundtotems.client.renderer.RendererTileEntityTotemShelf;
 import com.github.phylogeny.boundtotems.init.*;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.NonNullSupplier;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -36,6 +37,11 @@ public class BoundTotems
         SoundsMod.SOUNDS.register(bus);
         LootModifiersMod.LOOT_MODIFIERS.register(bus);
         bus.addListener(this::clientSetup);
+    }
+
+    public static ResourceLocation getResourceLoc(String path)
+    {
+        return new ResourceLocation(MOD_ID, path);
     }
 
     @SubscribeEvent
