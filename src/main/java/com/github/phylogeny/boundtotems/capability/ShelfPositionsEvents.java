@@ -4,7 +4,6 @@ import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.util.CapabilityUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.capabilities.CapabilityManager;
