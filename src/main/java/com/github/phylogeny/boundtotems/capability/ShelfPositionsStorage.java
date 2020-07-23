@@ -48,7 +48,9 @@ public class ShelfPositionsStorage implements Capability.IStorage<IShelfPosition
         {
             Set<BlockPos> posSet = new HashSet<>();
             positions.getList(i).forEach(element -> posSet.add(BlockPos.fromLong(((LongNBT) element).getLong())));
-            positionsTable.put(NBTUtil.getDimension(dimensions.get(i).getString()), posSet);
+            DimensionType dimension = NBTUtil.getDimension(dimensions.get(i).getString());
+            if (dimension != null)
+                positionsTable.put(dimension, posSet);
         }
         instance.setPositions(positionsTable);
     }

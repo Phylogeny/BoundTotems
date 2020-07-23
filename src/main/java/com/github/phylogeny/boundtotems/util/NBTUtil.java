@@ -163,6 +163,7 @@ public class NBTUtil
 		stack.setTagInfo(BOUND_LOCATION, nbt);
 	}
 
+	@Nullable
 	public static DimensionType getDimension(String name)
 	{
 		return DimensionType.byName(new ResourceLocation(name));
