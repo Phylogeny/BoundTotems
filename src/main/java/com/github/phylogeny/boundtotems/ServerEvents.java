@@ -11,7 +11,6 @@ import com.github.phylogeny.boundtotems.network.PacketNetwork;
 import com.github.phylogeny.boundtotems.network.packet.PacketTotemAnimation;
 import com.github.phylogeny.boundtotems.network.packet.PacketTotemParticlesAndSound;
 import com.github.phylogeny.boundtotems.tileentity.TileEntityTotemShelf;
-import com.github.phylogeny.boundtotems.util.EntityUtil.LocationTeleport;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import com.github.phylogeny.boundtotems.util.ReflectionUtil;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -186,17 +185,10 @@ public class ServerEvents
         }
         boolean teleporting = totem.getItem() instanceof ItemBoundTotemTeleporting;
         if (teleporting)
-        {
-            END_OF_TICK_TASKS.add(() ->
-            {
-                LocationTeleport location = NBTUtil.getBoundLocation(totem);
-                if (location != null)
-                    location.teleportEntity(entity);
-            });
-        }
+            END_OF_TICK_TASKS.add(() -> NBTUtil.teleportEntity(totem, entity));
+
         if (Config.SERVER.spawnParticles.get() || Config.SERVER.playSound.get())
             PacketNetwork.sendToAllTrackingAndSelf(new PacketTotemParticlesAndSound(entity), entity);
-
 
         if (player != null && Config.SERVER.playAnimation.get())
             PacketNetwork.sendTo(new PacketTotemAnimation(teleporting), player);

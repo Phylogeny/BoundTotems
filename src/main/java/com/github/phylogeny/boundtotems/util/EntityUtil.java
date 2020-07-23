@@ -106,24 +106,4 @@ public class EntityUtil
         entity.setMotion(0, 0, 0);
         entity.fallDistance = 0;
     }
-
-    public static class LocationTeleport
-    {
-        private final DimensionType dimension;
-        private final Vec3d pos;
-        private final float pitch, yaw;
-
-        public LocationTeleport(DimensionType dimension, Vec3d pos, float pitch, float yaw)
-        {
-            this.dimension = dimension;
-            this.pos = pos;
-            this.pitch = pitch;
-            this.yaw = yaw;
-        }
-
-        public void teleportEntity(Entity entity)
-        {
-            EntityUtil.teleportEntity(entity, dimension, pos, pitch, yaw);
-        }
-    }
 }

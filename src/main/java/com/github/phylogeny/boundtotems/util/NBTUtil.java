@@ -1,6 +1,5 @@
 package com.github.phylogeny.boundtotems.util;
 
-import com.github.phylogeny.boundtotems.util.EntityUtil.LocationTeleport;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -130,15 +129,17 @@ public class NBTUtil
 		return nbt != null && nbt.contains(BOUND_LOCATION);
 	}
 
-	@Nullable
-	public static LocationTeleport getBoundLocation(ItemStack stack)
+	public static void teleportEntity(ItemStack stack, LivingEntity entity)
 	{
 		CompoundNBT nbt = stack.getChildTag(BOUND_LOCATION);
 		if (nbt == null)
-			return null;
+			return;
 
 		DimensionType dimension = getDimension(nbt.getString(DIMENSION));
-		return dimension == null ? null : new LocationTeleport(dimension, readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
+		if (dimension == null)
+			return;
+
+		EntityUtil.teleportEntity(entity, dimension, readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
 	}
 
 	public static void copyBoundLocation(ItemStack source, ItemStack target)
