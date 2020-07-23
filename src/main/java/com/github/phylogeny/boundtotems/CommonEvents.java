@@ -44,7 +44,7 @@ public class CommonEvents
         if (path.startsWith("chests"))
         {
             ResourceLocation table = path.equals(LOOT_TABLE_MANSION.getPath()) ? LOOT_TABLE_MANSION : LOOT_TABLE;
-            event.getTable().addPool(LootPool.builder().addEntry(TableLootEntry.builder(table)).build());
+            event.getTable().addPool(LootPool.builder().name(path + "_" + BoundTotems.MOD_ID).addEntry(TableLootEntry.builder(table)).build());
         }
     }
 }
