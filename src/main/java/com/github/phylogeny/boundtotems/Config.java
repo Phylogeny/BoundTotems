@@ -12,22 +12,17 @@ import java.util.List;
 
 public class Config
 {
-    private static final String LANG_KEY = "config." + BoundTotems.MOD_ID;
-
     public static class Client extends ConfigBase
     {
-        private static final String LANG_KEY = Config.LANG_KEY + ".client.";
-
         Client()
         {
-            super("Client", "Contains configs only accessed by the client", ModConfig.Type.CLIENT);
+            super("Contains configs only accessed by the client", ModConfig.Type.CLIENT);
             build();
         }
     }
 
     public static class Server extends ConfigBase
     {
-        private static final String LANG_KEY = Config.LANG_KEY + ".server.";
         public final ConfigValue<InventorySearch> inventorySearch;
         public final ConfigValue<List<? extends String>> potionEffects;
         public final DoubleValue health, maxDistanceToShelf, boundCompasssSyncInterval;
@@ -41,79 +36,67 @@ public class Config
 
         Server()
         {
-            super("Server", "Contains configs only accessed by the server", ModConfig.Type.SERVER);
+            super("Contains configs only accessed by the server", ModConfig.Type.SERVER);
 
-            inventorySearch = builder
+            inventorySearch = getBuilder("search")
                     .comment("1) If set to WHOLE_INVENTORY, the entire inventory will be searched for totems; 2) If set to HOTBAR_ONLY, only the hotbar of the "
                             + "inventory will be searched for totems; 3) If set to HELD_ONLY, only totems that the player is holding will save them from death.")
-                    .translation(LANG_KEY + "search")
                     .defineEnum("Inventory Search Location", InventorySearch.WHOLE_INVENTORY);
 
-            preventCreativeModeDeath = builder
+            preventCreativeModeDeath = getBuilder("prevent.death.all")
                     .comment("If set to true, non-held bound totems of undying can save the player from death even " +
                             "from damage sources that harm players in creative mode (such as void damage and /kill command damage).")
-                    .translation(LANG_KEY + "prevent.death.all")
                     .define("Prevent All Death", true);
 
-            clearPotionEffects = builder
+            clearPotionEffects = getBuilder("effects.clear")
                      .comment(format("If set to true, all pre-existing potion effects will be cleared from the player %s."))
-                     .translation(LANG_KEY + "effects.clear")
                      .define("Clear Potion Effects", true);
 
-            potionEffects = builder
+            potionEffects = getBuilder("effects.apply")
                      .comment(format("These potion effects will be applied to the player %s. Each string specifies "
                              + "a potion effect in exactly the same way the /effect command does (e.i. the required "
                              + "first argument specifies a potion by id or by modId:name, and the second/third "
                              + "optional arguments are duration in seconds and amplification). These effects will "
                              + "be applied whether or not pre-existing effects were previously cleared."))
-                     .translation(LANG_KEY + "effects.apply")
                      .defineList("Apply Potion Effects", ImmutableList.of("minecraft:regeneration 45 1", "minecraft:absorption 5 1"), obj -> obj instanceof String);
 
-            spawnParticles = builder
+            spawnParticles = getBuilder("result.particles")
                      .comment(format("If set to true, totem particles will spawn for all nearby players %s."))
-                     .translation(LANG_KEY + "result.particles")
                      .define("Spawn Particles", true);
 
-            playSound = builder
+            playSound = getBuilder("result.sound")
                      .comment(format("If set to true, totem sound will play for all nearby players %s."))
-                     .translation(LANG_KEY + "result.sound")
                      .define("Play Sound", true);
 
-            playAnimation = builder
+            playAnimation = getBuilder("result.animation")
                      .comment(format("If set to true, the large floating totem animation will that takes up the screen will play upon %s."))
-                     .translation(LANG_KEY + "result.animation")
                      .define("Play Animation", false);
 
-            setHealthToPercentageOfMax = builder
+            setHealthToPercentageOfMax = getBuilder("health.percentage")
                      .comment(format("If set to true, 'New Health Value' will specify the percent of the player's max heath to set the new health "
                              + "value to %s. If set to false, it will specify the number of hearts (1 = 1/2 heart) to set the new health value to."))
-                     .translation(LANG_KEY + "health.percentage")
                      .define("Set Health To Percentage Of Max", false);
 
-            health = builder
+            health = getBuilder("health.value")
                     .comment(format("Specifies the value (either percentage of max health, or absolute value (1 = 1/2 heart), depending "
                             + "on what 'Set Health To Percentage Of Max' is set to) that the players heath will be set to %s."))
-                    .translation(LANG_KEY + "health.value")
                     .defineInRange("New Health Value", 1, 0, Double.MAX_VALUE);
 
-            maxDistanceToShelf = builder
+            maxDistanceToShelf = getBuilder("shelf.distance")
                     .comment(format("Specifies the maximum distance in meters from a totem shelf an entity must be when binding that " +
                             "shelf to that entity for the binding to be successful."))
-                    .translation(LANG_KEY + "shelf.distance")
                     .defineInRange("Max Distance To Shelf", 10, 0, Double.MAX_VALUE);
 
-            maxBoundShelves = builder
+            maxBoundShelves = getBuilder("shelf.max")
                     .comment(format("Specifies the maximum number of shelves that can be bound to an entity at a time. If an additional shelf " +
                             "is bound once the max has been reached, a randomly selected currently bound shelf will be struck with lightning and converted " +
                             "into a useless charred shelf. Items can be taken from a charred shelf but cannot be placed in it, and any totems it will " +
                             "have no effect as long as they remain in it."))
-                    .translation(LANG_KEY + "shelf.max")
                     .defineInRange("Max Bound Shelves", 10, 1, Integer.MAX_VALUE);
 
-            boundCompasssSyncInterval = builder
+            boundCompasssSyncInterval = getBuilder("compass.sync")
                     .comment(format("Specifies the time in seconds between syncing of the client's bound shelf positions to the server while " +
                             "holding a bound compass."))
-                    .translation(LANG_KEY + "compass.sync")
                     .defineInRange("Bound Compass Sync Interval", 5, 0.05, Double.MAX_VALUE);
 
             build();
@@ -127,20 +110,28 @@ public class Config
 
     private static class ConfigBase
     {
-        protected final Builder builder = new ForgeConfigSpec.Builder();
+        private final Builder builder = new ForgeConfigSpec.Builder();
         private final ModConfig.Type type;
+        private final String translationKeyBase;
         private ForgeConfigSpec spec;
 
-        public ConfigBase(String category, String description, ModConfig.Type type)
+        public ConfigBase(String description, ModConfig.Type type)
         {
-            builder.comment(description).push(category);
+            String name = type.name().toLowerCase();
+            builder.comment(description).push(name.substring(0, 1).toUpperCase() + name.substring(1));
             this.type = type;
+            translationKeyBase = "config." + BoundTotems.MOD_ID + "." + name + ".";
         }
 
         protected void build()
         {
             builder.pop();
             spec = builder.build();
+        }
+
+        protected Builder getBuilder(String translationKey)
+        {
+            return builder.translation(translationKeyBase + translationKey);
         }
 
         public void register()
