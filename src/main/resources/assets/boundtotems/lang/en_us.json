@@ -20,6 +20,10 @@
     "_comment": "Blocks",
     "block.boundtotems.totem_shelf": "Totem Shelf",
 
+    "_comment": "Commands",
+    "command.boundtotems.shelf.locate.entity": "Only living entities can send this command.",
+    "command.boundtotems.shelf.locate.none": "There are no totem shelves bound to you in this dimension.",
+
     "_comment": "Configs - Client",
     "config.boundtotems.client": "Client",
     "config.boundtotems.client.tooltip": "Contains configs only accessed by the client",

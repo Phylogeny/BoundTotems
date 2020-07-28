@@ -2,6 +2,7 @@ package com.github.phylogeny.boundtotems;
 
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import com.github.phylogeny.boundtotems.block.PositionsTotemShelf;
+import com.github.phylogeny.boundtotems.command.LocateCommand;
 import com.github.phylogeny.boundtotems.init.BlocksMod;
 import com.github.phylogeny.boundtotems.item.ItemCarvingKnife;
 import net.minecraft.block.BlockState;
@@ -15,6 +16,7 @@ import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 @EventBusSubscriber
 public class CommonEvents
@@ -46,5 +48,11 @@ public class CommonEvents
             ResourceLocation table = path.equals(LOOT_TABLE_MANSION.getPath()) ? LOOT_TABLE_MANSION : LOOT_TABLE;
             event.getTable().addPool(LootPool.builder().name(path + "_" + BoundTotems.MOD_ID).addEntry(TableLootEntry.builder(table)).build());
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerStart(FMLServerStartingEvent event)
+    {
+        LocateCommand.register(event.getCommandDispatcher());
     }
 }
