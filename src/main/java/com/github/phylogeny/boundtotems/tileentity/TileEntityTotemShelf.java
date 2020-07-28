@@ -123,7 +123,7 @@ public class TileEntityTotemShelf extends TileEntity
         knife = NBTUtil.readObjectFromSubTag(nbt, NBTUtil.KNIFE, ItemStack::read);
         knifePos = readVec(nbt, NBTUtil.POSITION);
         knifeDirection = readVec(nbt, NBTUtil.DIRECTION);
-        boundEntityID = NBTUtil.readNullableObject(nbt, "M", () -> NBTUtil.readUniqueId(nbt.getCompound("bound_entity_id")));
+        boundEntityID = NBTUtil.readNullableObject(nbt, "bound_entity_id", () -> NBTUtil.readUniqueId(nbt.getCompound("bound_entity_id")));
         if (nbt.contains("items"))
             getInventory().deserializeNBT((CompoundNBT) nbt.get("items"));
     }
