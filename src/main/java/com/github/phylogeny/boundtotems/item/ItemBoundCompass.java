@@ -50,7 +50,7 @@ public class ItemBoundCompass extends CompassItem
                 {
                     if (entity.getUniqueID().equals(NBTUtil.getBoundEntityId(stack)))
                     {
-                        Set<BlockPos> positions = CapabilityUtil.getShelfPositions(entity).getPositions().get(world.getDimension().getType());
+                        Set<BlockPos> positions = CapabilityUtil.getShelfPositions(entity).getPositions().get(NBTUtil.getDimensionKey(world));
                         if (positions != null && !positions.isEmpty())
                         {
                             double angleEntity = entity.rotationYaw;

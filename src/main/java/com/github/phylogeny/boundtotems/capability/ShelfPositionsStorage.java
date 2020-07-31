@@ -1,10 +1,9 @@
 package com.github.phylogeny.boundtotems.capability;
 
-import com.github.phylogeny.boundtotems.util.NBTUtil;
 import net.minecraft.nbt.*;
 import net.minecraft.util.Direction;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 
@@ -23,7 +22,7 @@ public class ShelfPositionsStorage implements Capability.IStorage<IShelfPosition
         ListNBT positions = new ListNBT();
         instance.getPositions().forEach((dimension, posSet) ->
         {
-            dimensions.add(StringNBT.valueOf(NBTUtil.getDimensionName(dimension)));
+            dimensions.add(StringNBT.valueOf(dimension.toString()));
             ListNBT posSetList = new ListNBT();
             posSet.forEach(pos -> posSetList.add(LongNBT.valueOf(pos.toLong())));
             positions.add(posSetList);
@@ -43,14 +42,12 @@ public class ShelfPositionsStorage implements Capability.IStorage<IShelfPosition
         CompoundNBT nbtCompound = (CompoundNBT) nbt;
         ListNBT dimensions = nbtCompound.getList("shelf_dimensions", Constants.NBT.TAG_STRING);
         ListNBT positions = nbtCompound.getList("shelf_positions", Constants.NBT.TAG_LIST);
-        Hashtable<DimensionType, Set<BlockPos>> positionsTable = new Hashtable<>();
+        Hashtable<ResourceLocation, Set<BlockPos>> positionsTable = new Hashtable<>();
         for (int i = 0; i < dimensions.size(); i++)
         {
             Set<BlockPos> posSet = new HashSet<>();
             positions.getList(i).forEach(element -> posSet.add(BlockPos.fromLong(((LongNBT) element).getLong())));
-            DimensionType dimension = NBTUtil.getDimension(dimensions.get(i).getString());
-            if (dimension != null)
-                positionsTable.put(dimension, posSet);
+            positionsTable.put(new ResourceLocation(dimensions.get(i).getString()), posSet);
         }
         instance.setPositions(positionsTable);
     }

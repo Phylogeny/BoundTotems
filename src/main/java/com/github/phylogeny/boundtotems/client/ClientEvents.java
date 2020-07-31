@@ -2,6 +2,7 @@ package com.github.phylogeny.boundtotems.client;
 
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import com.github.phylogeny.boundtotems.init.BlocksMod;
+import com.github.phylogeny.boundtotems.util.NBTUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.client.Minecraft;
@@ -9,10 +10,7 @@ import net.minecraft.client.particle.DiggingParticle;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -20,7 +18,6 @@ import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
@@ -34,11 +31,11 @@ import java.util.*;
 @EventBusSubscriber(value = Dist.CLIENT)
 public class ClientEvents
 {
-    private static final Map<DimensionType, List<Ghost>> GHOSTS = new HashMap<>();
+    private static final Map<ResourceLocation, List<Ghost>> GHOSTS = new HashMap<>();
 
     public static void addGhost(World world, Entity entity, float velocity, int maxLife, @Nullable Vec3d targetPos, @Nullable Entity targetEntity)
     {
-        DimensionType dimension = world.dimension.getDimension().getType();
+        ResourceLocation dimension = NBTUtil.getDimensionKey(world);
         List<Ghost> ghosts = GHOSTS.get(dimension);
         if (ghosts == null)
             ghosts = new ArrayList<>();
@@ -53,7 +50,7 @@ public class ClientEvents
         if (event.phase != Phase.START || getWorld() == null || Minecraft.getInstance().isGamePaused())
             return;
 
-        DimensionType dimension = getWorld().dimension.getDimension().getType();
+        ResourceLocation dimension = NBTUtil.getDimensionKey(getWorld());
         List<Ghost> ghosts = GHOSTS.get(dimension);
         if (ghosts == null)
             return;
@@ -66,7 +63,7 @@ public class ClientEvents
     @SubscribeEvent
     public static void renderGhosts(RenderWorldLastEvent event)
     {
-        List<Ghost> ghosts = GHOSTS.get(getWorld().dimension.getDimension().getType());
+        List<Ghost> ghosts = GHOSTS.get(NBTUtil.getDimensionKey(getWorld()));
         if (ghosts != null)
             ghosts.forEach(ghost -> ghost.render(event));
     }

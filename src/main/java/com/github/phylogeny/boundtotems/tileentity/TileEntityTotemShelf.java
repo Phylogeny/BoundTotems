@@ -30,10 +30,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.properties.DoubleBlockHalf;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.Vec3d;
@@ -311,8 +308,8 @@ public class TileEntityTotemShelf extends TileEntity
         }
         NBTUtil.bindKnife(knife.getOrCreateTag());
         boundEntityID = entity.getUniqueID();
-        DimensionType dimension = world.getDimension().getType();
-        Hashtable<DimensionType, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
+        ResourceLocation dimension = NBTUtil.getDimensionKey(world);
+        Hashtable<ResourceLocation, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
         Set<BlockPos> positions = positionTable.get(dimension);
         if (positions == null)
             positions = new HashSet<>();
@@ -327,17 +324,21 @@ public class TileEntityTotemShelf extends TileEntity
         if (server == null)
             return;
 
-        Hashtable<DimensionType, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
-        Set<DimensionType> dimensions = positionTable.keySet();
-        Iterator<DimensionType> iteratorDim = dimensions.iterator();
+        Hashtable<ResourceLocation, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
+        Set<ResourceLocation> dimensions = positionTable.keySet();
+        Iterator<ResourceLocation> iteratorDim = dimensions.iterator();
         while (iteratorDim.hasNext())
         {
-            DimensionType dimension = iteratorDim.next();
+            ResourceLocation dimensionKey = iteratorDim.next();
+            DimensionType dimension = NBTUtil.getDimension(dimensionKey);
+            if (dimension == null)
+                continue;
+
             ServerWorld world = server.getWorld(dimension);
             if (world == null)
                 continue;
 
-            Set<BlockPos> positions = positionTable.get(dimension);
+            Set<BlockPos> positions = positionTable.get(dimensionKey);
             if (positions == null)
             {
                 iteratorDim.remove();

@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 
@@ -135,11 +136,9 @@ public class NBTUtil
 		if (nbt == null)
 			return;
 
-		DimensionType dimension = getDimension(nbt.getString(DIMENSION));
-		if (dimension == null)
-			return;
-
-		EntityUtil.teleportEntity(entity, dimension, readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
+		DimensionType dimension = getDimension(new ResourceLocation(nbt.getString(DIMENSION)));
+		if (dimension != null)
+			EntityUtil.teleportEntity(entity, dimension, readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
 	}
 
 	public static void copyBoundLocation(ItemStack source, ItemStack target)
@@ -151,8 +150,10 @@ public class NBTUtil
 
 	public static void setBoundLocation(ItemStack stack, LivingEntity entity)
 	{
-		setBoundLocation(stack, entity.getPositionVector(),
-				getDimensionName(entity.dimension), entity.rotationPitch, entity.rotationYaw);
+		ResourceLocation dim = getDimensionKey(entity.dimension);
+		if (dim != null)
+			setBoundLocation(stack, entity.getPositionVector(),
+					dim.toString(), entity.rotationPitch, entity.rotationYaw);
 	}
 
 	public static void setBoundLocation(ItemStack stack, Vec3d pos, String dimension, float pitch, float yaw)
@@ -165,15 +166,21 @@ public class NBTUtil
 	}
 
 	@Nullable
-	public static DimensionType getDimension(String name)
+	public static DimensionType getDimension(ResourceLocation key)
 	{
-		return DimensionType.byName(new ResourceLocation(name));
+		return DimensionType.byName(key);
 	}
 
-	public static String getDimensionName(DimensionType dimension)
+	@Nullable
+	public static ResourceLocation getDimensionKey(World world)
 	{
-		ResourceLocation name = DimensionType.getKey(dimension);
-		return name != null ? name.toString() : "[DIMENSION NOT FOUND]";
+		return getDimensionKey(world.getDimension().getType());
+	}
+
+	@Nullable
+	public static ResourceLocation getDimensionKey(DimensionType dimension)
+	{
+		return DimensionType.getKey(dimension);
 	}
 
 	private static Vec3d readVec(CompoundNBT nbt)

@@ -4,8 +4,8 @@ import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.util.CapabilityUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -35,7 +35,7 @@ public class ShelfPositionsEvents
     {
         if (event.isWasDeath())
         {
-            Hashtable<DimensionType, Set<BlockPos>> positions = CapabilityUtil.getShelfPositions(event.getOriginal()).getPositions();
+            Hashtable<ResourceLocation, Set<BlockPos>> positions = CapabilityUtil.getShelfPositions(event.getOriginal()).getPositions();
             CapabilityUtil.getShelfPositions(event.getPlayer()).setPositions(positions);
         }
     }
