@@ -12,11 +12,9 @@ import java.util.function.Supplier;
 
 public class PacketTotemShelfCarveEffects
 {
-    private int stageNext;
-    private BlockPos pos;
-    private Direction facing;
-
-    public PacketTotemShelfCarveEffects() {}
+    private final int stageNext;
+    private final BlockPos pos;
+    private final Direction facing;
 
     public PacketTotemShelfCarveEffects(int stageNext, BlockPos pos, Direction facing)
     {

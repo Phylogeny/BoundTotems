@@ -10,9 +10,7 @@ import java.util.function.Supplier;
 
 public class PacketTotemAnimation
 {
-    private boolean teleporting;
-
-    public PacketTotemAnimation() {}
+    private final boolean teleporting;
 
     public PacketTotemAnimation(boolean teleporting)
     {

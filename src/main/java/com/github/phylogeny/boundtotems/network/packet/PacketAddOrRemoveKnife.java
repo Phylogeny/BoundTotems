@@ -18,11 +18,9 @@ import java.util.function.Supplier;
 
 public class PacketAddOrRemoveKnife
 {
-    private BlockPos pos;
-    private ItemStack knifeStack = ItemStack.EMPTY;
-    private Vec3d knifePos, knifeDirection;
-
-    public PacketAddOrRemoveKnife() {}
+    private final BlockPos pos;
+    private final ItemStack knifeStack;
+    private final Vec3d knifePos, knifeDirection;
 
     public PacketAddOrRemoveKnife(BlockPos pos, Vec3d knifePos, ItemStack knifeStack)
     {

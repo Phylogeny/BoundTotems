@@ -14,12 +14,11 @@ import java.util.function.Supplier;
 
 public class PacketAddGhost
 {
-    private int entityId, maxLife;
-    private float velocity;
-    private Vec3d targetPos;
-    private Integer targetEntityId;
-
-    public PacketAddGhost() {}
+    private final int entityId;
+    private final int maxLife;
+    private final float velocity;
+    private final Vec3d targetPos;
+    private final Integer targetEntityId;
 
     public PacketAddGhost(Entity entity, float velocity, int maxLife, @Nullable Vec3d targetPos, @Nullable Entity targetEntity)
     {

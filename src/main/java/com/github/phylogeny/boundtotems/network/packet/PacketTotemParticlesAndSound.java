@@ -13,10 +13,8 @@ import java.util.function.Supplier;
 
 public class PacketTotemParticlesAndSound
 {
-    private boolean particles, sound;
-    private int entityId;
-
-    public PacketTotemParticlesAndSound() {}
+    private final boolean particles, sound;
+    private final int entityId;
 
     public PacketTotemParticlesAndSound(Entity entity)
     {

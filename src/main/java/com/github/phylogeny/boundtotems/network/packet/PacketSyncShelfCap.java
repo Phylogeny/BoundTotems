@@ -13,9 +13,7 @@ import java.util.function.Supplier;
 
 public class PacketSyncShelfCap
 {
-    private CompoundNBT nbt;
-
-    public PacketSyncShelfCap() {}
+    private final CompoundNBT nbt;
 
     public PacketSyncShelfCap(ServerPlayerEntity player)
     {

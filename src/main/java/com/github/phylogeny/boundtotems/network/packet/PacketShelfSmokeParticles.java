@@ -11,10 +11,8 @@ import java.util.function.Supplier;
 
 public class PacketShelfSmokeParticles
 {
-    private AxisAlignedBB box;
-    private boolean addFlames;
-
-    public PacketShelfSmokeParticles() {}
+    private final AxisAlignedBB box;
+    private final boolean addFlames;
 
     public PacketShelfSmokeParticles(AxisAlignedBB box, boolean addFlames)
     {
