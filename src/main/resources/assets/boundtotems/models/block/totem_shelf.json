@@ -34,6 +34,6 @@
     "textures": {
         "top": "block/stripped_oak_log_top",
         "side": "block/stripped_oak_log",
-		"particle": "block/stripped_oak_log"
+        "particle": "block/stripped_oak_log"
     }
 }

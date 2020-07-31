@@ -1,16 +1,16 @@
 modLoader="javafml"
 loaderVersion="[31,)"
-logoFile="logo.png"
 [[mods]]
     modId="boundtotems"
     version="${version}"
     displayName="Bound Totems"
-	description="This mod allows Totems of Undying to be bound to living entities, and adds a totem shelf that can store them when bound to the same entity. If the totem is anywhere in the entity's inventory, or in any totem shelf in any dimension that is bound to that entity, it will be saved from all death (even death from creative damage). A teleporting variant is also added that teleports the entity to a saved location in any dimension."
-	issueTrackerURL="https://github.com/Phylogeny/BoundTotems/issues"
-	displayURL="https://www.curseforge.com/minecraft/mc-mods/bound-totems"
-	updateJSONURL="https://github.com/Phylogeny/BoundTotems/raw/1.15.2/update.json"
-	credits="This mod includes sounds derived from those by EnragedTurkey, Tiffany Marz, and Mr_KeybOred from Freesound.org"
-	authors="Phylogeny"
+    logoFile="logo.png"
+    description="This mod allows Totems of Undying to be bound to living entities, and adds a totem shelf that can store them when bound to the same entity. If the totem is anywhere in the entity's inventory, or in any totem shelf in any dimension that is bound to that entity, it will be saved from all death (even death from creative damage). A teleporting variant is also added that teleports the entity to a saved location in any dimension."
+    issueTrackerURL="https://github.com/Phylogeny/BoundTotems/issues"
+    displayURL="https://www.curseforge.com/minecraft/mc-mods/bound-totems"
+    updateJSONURL="https://github.com/Phylogeny/BoundTotems/raw/1.15.2/update.json"
+    credits="This mod includes sounds derived from those by EnragedTurkey, Tiffany Marz, and Mr_KeybOred from Freesound.org"
+    authors="Phylogeny"
 [[dependencies.boundtotems]]
     modId="forge"
     mandatory=true

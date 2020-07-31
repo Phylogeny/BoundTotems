@@ -6,14 +6,14 @@
       "entries": [
         {
           "type": "minecraft:item",
-		  "weight": 20,
-		  "name": "minecraft:air"
+          "weight": 20,
+          "name": "minecraft:air"
         },
         {
           "type": "minecraft:item",
           "name": "boundtotems:carving_knife"
         },
-		{
+        {
           "type": "minecraft:item",
           "name": "boundtotems:ritual_dagger"
         }

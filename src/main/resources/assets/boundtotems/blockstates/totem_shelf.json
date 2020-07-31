@@ -128,7 +128,7 @@
     "stage=10,half=lower,binding_state=bound,facing=south,charred=true": { "model": "boundtotems:block/totem_shelf_stage_9_10_bottom_charred" },
     "stage=10,half=lower,binding_state=bound,facing=west,charred=true": { "model": "boundtotems:block/totem_shelf_stage_9_10_bottom_charred", "y": 90 },
     "stage=10,half=lower,binding_state=bound,facing=east,charred=true": { "model": "boundtotems:block/totem_shelf_stage_9_10_bottom_charred", "y": 270 },
-	"binding_state=cooling,facing=east,half=upper,stage=8": { "model": "boundtotems:block/totem_shelf" },
+    "binding_state=cooling,facing=east,half=upper,stage=8": { "model": "boundtotems:block/totem_shelf" },
     "binding_state=cooling,facing=east,half=upper,stage=9": { "model": "boundtotems:block/totem_shelf" },
     "binding_state=cooling,facing=east,half=upper,stage=4": { "model": "boundtotems:block/totem_shelf" },
     "binding_state=cooling,facing=east,half=upper,stage=5": { "model": "boundtotems:block/totem_shelf" },

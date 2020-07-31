@@ -9,45 +9,45 @@ import java.util.function.Supplier;
 
 public class PacketBufferUtil
 {
-	public static void writeNullableObject(PacketBuffer buf, Object object, Runnable bufWriter)
-	{
-		boolean nonNull = object != null;
-		buf.writeBoolean(nonNull);
-		if (nonNull)
-			bufWriter.run();
-	}
+    public static void writeNullableObject(PacketBuffer buf, Object object, Runnable bufWriter)
+    {
+        boolean nonNull = object != null;
+        buf.writeBoolean(nonNull);
+        if (nonNull)
+            bufWriter.run();
+    }
 
-	@Nullable
-	public static <T> T readNullableObject(PacketBuffer buf, Supplier<T> bufReader)
-	{
-		return buf.readBoolean() ? bufReader.get() : null;
-	}
+    @Nullable
+    public static <T> T readNullableObject(PacketBuffer buf, Supplier<T> bufReader)
+    {
+        return buf.readBoolean() ? bufReader.get() : null;
+    }
 
-	public static void writeVec(PacketBuffer buf, Vec3d vec)
-	{
-		buf.writeDouble(vec.x);
-		buf.writeDouble(vec.y);
-		buf.writeDouble(vec.z);
-	}
+    public static void writeVec(PacketBuffer buf, Vec3d vec)
+    {
+        buf.writeDouble(vec.x);
+        buf.writeDouble(vec.y);
+        buf.writeDouble(vec.z);
+    }
 
-	public static Vec3d readVec(PacketBuffer buf)
-	{
-		return new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
-	}
+    public static Vec3d readVec(PacketBuffer buf)
+    {
+        return new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+    }
 
-	public static void writeAABB(PacketBuffer buf, AxisAlignedBB box)
-	{
-		buf.writeDouble(box.minX);
-		buf.writeDouble(box.minY);
-		buf.writeDouble(box.minZ);
-		buf.writeDouble(box.maxX);
-		buf.writeDouble(box.maxY);
-		buf.writeDouble(box.maxZ);
-	}
+    public static void writeAABB(PacketBuffer buf, AxisAlignedBB box)
+    {
+        buf.writeDouble(box.minX);
+        buf.writeDouble(box.minY);
+        buf.writeDouble(box.minZ);
+        buf.writeDouble(box.maxX);
+        buf.writeDouble(box.maxY);
+        buf.writeDouble(box.maxZ);
+    }
 
-	public static AxisAlignedBB readAABB(PacketBuffer buf)
-	{
-		return new AxisAlignedBB(buf.readDouble(), buf.readDouble(), buf.readDouble(),
-				buf.readDouble(), buf.readDouble(), buf.readDouble());
-	}
+    public static AxisAlignedBB readAABB(PacketBuffer buf)
+    {
+        return new AxisAlignedBB(buf.readDouble(), buf.readDouble(), buf.readDouble(),
+                buf.readDouble(), buf.readDouble(), buf.readDouble());
+    }
 }
