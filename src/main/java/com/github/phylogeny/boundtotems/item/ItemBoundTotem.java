@@ -21,17 +21,17 @@ public class ItemBoundTotem extends Item
         super(properties.rarity(Rarity.UNCOMMON).maxStackSize(1));
     }
 
-    @Override
-    public boolean hasContainerItem(ItemStack stack)
-    {
-        return true;
-    }
-
-    @Override
-    public ItemStack getContainerItem(ItemStack stack)
-    {
-        return stack.copy();
-    }
+//    @Override
+//    public boolean hasContainerItem(ItemStack stack)
+//    {
+//        return true;
+//    }
+//
+//    @Override
+//    public ItemStack getContainerItem(ItemStack stack)
+//    {
+//        return stack.copy();
+//    }
 
     @Override
     public ITextComponent getDisplayName(ItemStack stack)
