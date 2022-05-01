@@ -33,10 +33,9 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
@@ -55,7 +54,7 @@ public class TileEntityTotemShelf extends TileEntity
     public static final int SIZE_INVENTORY = 6;
     private final LazyOptional<ItemStackHandler> inventory = LazyOptional.of(this::createInventory);
     protected ItemStack knife = ItemStack.EMPTY;
-    private Vec3d knifePos, knifeDirection;
+    private Vector3d knifePos, knifeDirection;
     private UUID boundEntityID;
 
     public TileEntityTotemShelf()
@@ -80,13 +79,13 @@ public class TileEntityTotemShelf extends TileEntity
     }
 
     @Nullable
-    public Vec3d getKnifePos()
+    public Vector3d getKnifePos()
     {
         return knifePos == null ? null : knifePos.add(knifeDirection.scale(-0.15));
     }
 
     @Nullable
-    public Vec3d getKnifeDirection()
+    public Vector3d getKnifeDirection()
     {
         return knifeDirection;
     }
@@ -103,7 +102,7 @@ public class TileEntityTotemShelf extends TileEntity
         return nbt;
     }
 
-    private void writeVec(CompoundNBT nbt, Vec3d vec, String key)
+    private void writeVec(CompoundNBT nbt, Vector3d vec, String key)
     {
         NBTUtil.writeNullableObject(vec, () -> NBTUtil.writeObjectToSubTag(nbt, key, nbtSub ->
         {
@@ -114,9 +113,9 @@ public class TileEntityTotemShelf extends TileEntity
     }
 
     @Override
-    public void read(CompoundNBT nbt)
+    public void read(BlockState state, CompoundNBT nbt)
     {
-        super.read(nbt);
+        super.read(state, nbt);
         knife = NBTUtil.readObjectFromSubTag(nbt, NBTUtil.KNIFE, ItemStack::read);
         knifePos = readVec(nbt, NBTUtil.POSITION);
         knifeDirection = readVec(nbt, NBTUtil.DIRECTION);
@@ -125,13 +124,13 @@ public class TileEntityTotemShelf extends TileEntity
             getInventory().deserializeNBT((CompoundNBT) nbt.get("items"));
     }
 
-    private Vec3d readVec(CompoundNBT nbt, String key)
+    private Vector3d readVec(CompoundNBT nbt, String key)
     {
         return NBTUtil.readNullableObject(nbt, key, () -> NBTUtil.readObjectFromSubTag(nbt, key, nbtSub ->
-                new Vec3d(nbtSub.getDouble(NBTUtil.X), nbtSub.getDouble(NBTUtil.Y), nbtSub.getDouble(NBTUtil.Z))));
+                new Vector3d(nbtSub.getDouble(NBTUtil.X), nbtSub.getDouble(NBTUtil.Y), nbtSub.getDouble(NBTUtil.Z))));
     }
 
-    private boolean isInterior(@Nullable Vec3d hit)
+    private boolean isInterior(@Nullable Vector3d hit)
     {
         return hit != null && (int) hit.x != hit.x && (int) hit.y != hit.y && (int) hit.z != hit.z;
     }
@@ -169,7 +168,7 @@ public class TileEntityTotemShelf extends TileEntity
             public boolean isItemValid(int slot, @Nonnull ItemStack stack)
             {
                 return stack.isEmpty() || knifePos == null && boundEntityID != null && stack.getItem() instanceof ItemBoundTotem
-                        && boundEntityID.equals(NBTUtil.getBoundEntityId(stack)) && !world.getBlockState(pos).get(BlockTotemShelf.CHARRED);
+                        && boundEntityID.equals(NBTUtil.getBoundEntityId(stack)) && (world == null || !world.getBlockState(pos).get(BlockTotemShelf.CHARRED));
             }
         };
     }
@@ -199,7 +198,7 @@ public class TileEntityTotemShelf extends TileEntity
                     player.setHeldItem(hand, knife);
                     world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundCategory.MASTER, 0.5F, 2);
                     world.playSound(null, pos, SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, SoundCategory.MASTER, 0.25F, 2);
-                    Vec3d vec = knifePos.add(knifeDirection.scale(-0.05));
+                    Vector3d vec = knifePos.add(knifeDirection.scale(-0.05));
                     removeKnife();
                     PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, vec, knife), world, vec);
                 }
@@ -209,7 +208,7 @@ public class TileEntityTotemShelf extends TileEntity
         return false;
     }
 
-    public void addKnife(Vec3d knifePos, Vec3d knifeDirection, ItemStack knifeStack)
+    public void addKnife(Vector3d knifePos, Vector3d knifeDirection, ItemStack knifeStack)
     {
         this.knifePos = knifePos;
         this.knifeDirection = knifeDirection;
@@ -223,7 +222,7 @@ public class TileEntityTotemShelf extends TileEntity
     }
 
     @Nullable
-    public static VoxelShape getObservedKnifeShape(BlockPos pos, BlockRayTraceResult target, Vec3d knifePos)
+    public static VoxelShape getObservedKnifeShape(BlockPos pos, BlockRayTraceResult target, Vector3d knifePos)
     {
         return knifePos == null ? null : getHitShape(BlockTotemShelf.SHAPE_KNIFE.withOffset(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ()), pos, target);
     }
@@ -245,7 +244,7 @@ public class TileEntityTotemShelf extends TileEntity
         TileEntity te = world.getTileEntity(pos);
         if (te instanceof TileEntityTotemShelf)
         {
-            te.read(nbt);
+            te.read(state, nbt);
             markDirty();
             world.notifyBlockUpdate(pos, state, state, Constants.BlockFlags.DEFAULT);
             if (!world.isRemote && bindingState.hasNext())
@@ -330,11 +329,7 @@ public class TileEntityTotemShelf extends TileEntity
         while (iteratorDim.hasNext())
         {
             ResourceLocation dimensionKey = iteratorDim.next();
-            DimensionType dimension = NBTUtil.getDimension(dimensionKey);
-            if (dimension == null)
-                continue;
-
-            ServerWorld world = server.getWorld(dimension);
+            ServerWorld world = server.getWorld(NBTUtil.getDimension(dimensionKey));
             if (world == null)
                 continue;
 
@@ -393,7 +388,7 @@ public class TileEntityTotemShelf extends TileEntity
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt)
     {
-        read(pkt.getNbtCompound());
+        read(getBlockState(), pkt.getNbtCompound());
         if (world == null || !world.isRemote)
             return;
 

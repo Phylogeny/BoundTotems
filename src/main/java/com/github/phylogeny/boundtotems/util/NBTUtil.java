@@ -5,11 +5,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
@@ -35,6 +37,7 @@ public class NBTUtil
     public static final String DIRECTION = "dir";
     public static final String KNIFE = "knife";
     public static final String GLOWING = "glowing";
+    public static final String UUID = "uuid";
 
     public static boolean hasBoundEntity(ItemStack stack)
     {
@@ -48,12 +51,14 @@ public class NBTUtil
 
     public static UUID readUniqueId(CompoundNBT nbt)
     {
-        return net.minecraft.nbt.NBTUtil.readUniqueId(nbt);
+        return nbt.hasUniqueId(UUID) ? nbt.getUniqueId(UUID) : Util.DUMMY_UUID;
     }
 
     public static CompoundNBT writeUniqueId(UUID id)
     {
-        return net.minecraft.nbt.NBTUtil.writeUniqueId(id);
+        CompoundNBT nbt = new CompoundNBT();
+        nbt.putUniqueId(UUID, id);
+        return nbt;
     }
 
     @Nullable
@@ -133,12 +138,8 @@ public class NBTUtil
     public static void teleportEntity(ItemStack stack, LivingEntity entity)
     {
         CompoundNBT nbt = stack.getChildTag(BOUND_LOCATION);
-        if (nbt == null)
-            return;
-
-        DimensionType dimension = getDimension(new ResourceLocation(nbt.getString(DIMENSION)));
-        if (dimension != null)
-            EntityUtil.teleportEntity(entity, dimension, readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
+        if (nbt != null)
+            EntityUtil.teleportEntity(entity, getDimension(new ResourceLocation(nbt.getString(DIMENSION))), readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
     }
 
     public static void copyBoundLocation(ItemStack source, ItemStack target)
@@ -150,13 +151,11 @@ public class NBTUtil
 
     public static void setBoundLocation(ItemStack stack, LivingEntity entity)
     {
-        ResourceLocation dim = getDimensionKey(entity.dimension);
-        if (dim != null)
-            setBoundLocation(stack, entity.getPositionVector(),
-                    dim.toString(), entity.rotationPitch, entity.rotationYaw);
+        setBoundLocation(stack, entity.getPositionVec(),
+                getDimensionKey(entity.getEntityWorld()).toString(), entity.rotationPitch, entity.rotationYaw);
     }
 
-    public static void setBoundLocation(ItemStack stack, Vec3d pos, String dimension, float pitch, float yaw)
+    public static void setBoundLocation(ItemStack stack, Vector3d pos, String dimension, float pitch, float yaw)
     {
         CompoundNBT nbt = writeVec(pos);
         nbt.putString(DIMENSION, dimension);
@@ -165,30 +164,22 @@ public class NBTUtil
         stack.setTagInfo(BOUND_LOCATION, nbt);
     }
 
-    @Nullable
-    public static DimensionType getDimension(ResourceLocation key)
+    public static RegistryKey<World> getDimension(ResourceLocation key)
     {
-        return DimensionType.byName(key);
+        return RegistryKey.getOrCreateKey(Registry.WORLD_KEY, key);
     }
 
-    @Nullable
     public static ResourceLocation getDimensionKey(World world)
     {
-        return getDimensionKey(world.getDimension().getType());
+        return world.getDimensionKey().getLocation();
     }
 
-    @Nullable
-    public static ResourceLocation getDimensionKey(DimensionType dimension)
+    private static Vector3d readVec(CompoundNBT nbt)
     {
-        return DimensionType.getKey(dimension);
+        return new Vector3d(nbt.getDouble("X"), nbt.getDouble("Y"), nbt.getDouble("Z"));
     }
 
-    private static Vec3d readVec(CompoundNBT nbt)
-    {
-        return new Vec3d(nbt.getDouble("X"), nbt.getDouble("Y"), nbt.getDouble("Z"));
-    }
-
-    private static CompoundNBT writeVec(Vec3d vec)
+    private static CompoundNBT writeVec(Vector3d vec)
     {
         CompoundNBT nbt = new CompoundNBT();
         nbt.putDouble("X", vec.x);
@@ -203,7 +194,7 @@ public class NBTUtil
         if (nbt == null)
             return;
 
-        Vec3d pos = readVec(nbt);
+        Vector3d pos = readVec(nbt);
         String dimension = nbt.getString(DIMENSION);
         if (!fullDimensionName)
             dimension = dimension.substring(dimension.indexOf(":") + 1);

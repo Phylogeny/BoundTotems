@@ -3,7 +3,6 @@ package com.github.phylogeny.boundtotems.client.jei;
 import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.Config;
 import com.github.phylogeny.boundtotems.init.ItemsMod;
-import com.github.phylogeny.boundtotems.item.ItemTotemShelf;
 import com.github.phylogeny.boundtotems.util.LangUtil;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import mezz.jei.api.IModPlugin;
@@ -22,10 +21,12 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @JeiPlugin
 public class JustEnoughItemsPlugin implements IModPlugin
@@ -60,7 +61,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
 
         IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
         List<InWorldRecipe> recipes = new ArrayList<>();
-        ItemTotemShelf shelf = ItemsMod.TOTEM_SHELF_ITEM.get();
+        Item shelf = ItemsMod.TOTEM_SHELF_ITEM.get();
         recipes.add(new InWorldRecipe("bloody_dagger", guiHelper, 1, ItemsMod.RITUAL_DAGGER.get()).setOutputs(stackBloodyKnife));
         recipes.add(new InWorldRecipe("bind_totem", guiHelper, 2, stackBloodyKnife, stackBoundKnife).setAdditionalInputs(Items.TOTEM_OF_UNDYING).setOutputs(stackTotemBound));
         recipes.add(new InWorldRecipe("totem_shelf_frame", guiHelper, 9, ItemsMod.CARVING_KNIFE.get()).setAdditionalInputs(Blocks.OAK_LOG, Blocks.STRIPPED_OAK_LOG).setOutputs(stackPlanks));
@@ -82,7 +83,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
 
     private static <I extends Item> void addItemInfo(IRecipeRegistration registration, RegistryObject<I> item, Object... parameters)
     {
-        registration.addIngredientInfo(new ItemStack(item.get()), VanillaTypes.ITEM, I18n.format(LangUtil.join(ITEM_INFO_LANG_KEY, item.get().getRegistryName().getPath()), parameters));
+        registration.addIngredientInfo(new ItemStack(item.get()), VanillaTypes.ITEM, new TranslationTextComponent(LangUtil.join(ITEM_INFO_LANG_KEY, Objects.requireNonNull(item.get().getRegistryName()).getPath()), parameters));
     }
 
     @Override

@@ -1,19 +1,21 @@
 package com.github.phylogeny.boundtotems.item;
 
-import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.init.ItemsMod;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
 import com.github.phylogeny.boundtotems.network.packet.PacketAddGhost;
 import com.github.phylogeny.boundtotems.util.EntityUtil;
+import com.github.phylogeny.boundtotems.util.LangUtil;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.CauldronBlock;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -35,8 +37,6 @@ public class ItemRitualDagger extends Item
     public ItemRitualDagger(Properties properties)
     {
         super(properties.maxStackSize(1));
-        addPropertyOverride(new ResourceLocation("state"), (stack, world, entity) ->
-                stack.hasTag() && stack.getTag().contains(NBTUtil.GLOWING) ? 3 : State.get(stack).ordinal());
     }
 
     public enum State
@@ -47,7 +47,7 @@ public class ItemRitualDagger extends Item
 
         State()
         {
-            langKey = String.join(".", "item", BoundTotems.MOD_ID, NAME, name().toLowerCase());
+            langKey = LangUtil.getKey("item", NAME, name().toLowerCase());
         }
 
         public String getLangKey()
@@ -65,13 +65,10 @@ public class ItemRitualDagger extends Item
     }
 
     @Override
-    public Multimap<String, AttributeModifier> getAttributeModifiers(EquipmentSlotType slot, ItemStack stack)
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotType slot, ItemStack stack)
     {
-        Multimap<String, AttributeModifier> map = super.getAttributeModifiers(slot, stack);
-        if (slot == EquipmentSlotType.MAINHAND && State.get(stack) == State.BOUND)
-            map.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 5, AttributeModifier.Operation.ADDITION));
-
-        return map;
+        return slot != EquipmentSlotType.MAINHAND || State.get(stack) != State.BOUND ? super.getAttributeModifiers(slot, stack)
+                : ImmutableMultimap.of(Attributes.ATTACK_DAMAGE, new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 5, AttributeModifier.Operation.ADDITION));
     }
 
     @Override

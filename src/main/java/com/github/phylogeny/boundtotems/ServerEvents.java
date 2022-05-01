@@ -11,6 +11,7 @@ import com.github.phylogeny.boundtotems.network.PacketNetwork;
 import com.github.phylogeny.boundtotems.network.packet.PacketTotemAnimation;
 import com.github.phylogeny.boundtotems.network.packet.PacketTotemParticlesAndSound;
 import com.github.phylogeny.boundtotems.tileentity.TileEntityTotemShelf;
+import com.github.phylogeny.boundtotems.util.LangUtil;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import com.github.phylogeny.boundtotems.util.ReflectionUtil;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -29,10 +30,7 @@ import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.server.management.PlayerInteractionManager;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
@@ -180,7 +178,7 @@ public class ServerEvents
             }
             catch (IllegalPotionEffectArgumentException e)
             {
-                entity.sendMessage(new TranslationTextComponent(String.format("potion_effect.%s.error", BoundTotems.MOD_ID), potionEffect, e.getMessage()));
+                entity.sendMessage(new TranslationTextComponent(LangUtil.getKey("potion_effect", "error"), potionEffect, e.getMessage()), Util.DUMMY_UUID);
             }
         }
         boolean teleporting = totem.getItem() instanceof ItemBoundTotemTeleporting;
@@ -243,13 +241,13 @@ public class ServerEvents
 
         public IllegalPotionEffectArgumentException(String translationKeySuffix, Object... args)
         {
-            message = new TranslationTextComponent(String.join(".", "potion_effect", BoundTotems.MOD_ID, translationKeySuffix), args);
+            message = new TranslationTextComponent(LangUtil.getKey("potion_effect", translationKeySuffix), args);
         }
 
         @Override
         public String getMessage()
         {
-            return message.getFormattedText();
+            return message.getString();
         }
     }
 

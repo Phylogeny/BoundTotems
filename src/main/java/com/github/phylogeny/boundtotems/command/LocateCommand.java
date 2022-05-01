@@ -16,7 +16,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentUtils;
 import net.minecraft.util.text.TextFormatting;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class LocateCommand
 {
-    private static final String NAME = "Bound_Totem_Shelf";
+    private static final String NAME = "bound_totem_shelf";
 
     public static void register(CommandDispatcher<CommandSource> dispatcher)
     {
@@ -40,7 +40,7 @@ public class LocateCommand
     {
         BlockPos pos = new BlockPos(source.getPos());
         Entity entity = source.getEntity();
-        if (entity == null || !(entity instanceof LivingEntity))
+        if (!(entity instanceof LivingEntity))
             throwException("entity");
 
         AtomicReference<TileEntityTotemShelf> nearestShelf = new AtomicReference<>();
@@ -64,10 +64,10 @@ public class LocateCommand
         Direction dir = state.get(BlockTotemShelf.FACING);
         AxisAlignedBB box = state.getCollisionShape(entity.world, target).getBoundingBox();
         double width = dir.getAxis() == Direction.Axis.X ? box.getXSize() : box.getZSize();
-        Vec3d exactTarget = new Vec3d(target.getX() + 0.5, target.getY() - 1, target.getZ() + 0.5)
-                .add(new Vec3d(dir.getDirectionVec()).scale(width - 0.5 + entity.getWidth() * 0.5));
-        ITextComponent message = TextComponentUtils.wrapInSquareBrackets(new TranslationTextComponent("chat.coordinates", target.getX(), exactTarget.getY(), target.getZ())).applyTextStyle(text ->
-                text.setColor(TextFormatting.GREEN).setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + exactTarget.getX() + " " + exactTarget.getY() + " " + exactTarget.getZ()))
+        Vector3d exactTarget = new Vector3d(target.getX() + 0.5, target.getY() - 1, target.getZ() + 0.5)
+                .add(Vector3d.copy(dir.getDirectionVec()).scale(width - 0.5 + entity.getWidth() * 0.5));
+        ITextComponent message = TextComponentUtils.wrapWithSquareBrackets(new TranslationTextComponent("chat.coordinates", target.getX(), exactTarget.getY(), target.getZ())).modifyStyle(text ->
+                text.setFormatting(TextFormatting.GREEN).setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + exactTarget.getX() + " " + exactTarget.getY() + " " + exactTarget.getZ()))
                         .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslationTextComponent("chat.coordinates.tooltip"))));
         source.sendFeedback(new TranslationTextComponent("commands.locate.success", NAME, message, distance), false);
         return distance;
@@ -75,7 +75,7 @@ public class LocateCommand
 
     private static void throwException(String name) throws CommandSyntaxException
     {
-        throw new SimpleCommandExceptionType(LangUtil.getLocalizedText("command", "shelf.locate." + name)).create();//"locate.failed"
+        throw new SimpleCommandExceptionType(LangUtil.getLocalizedText("command", "shelf.locate." + name)).create();
     }
 
     private static float getDistance(int x1, int z1, int x2, int z2)

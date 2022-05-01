@@ -8,7 +8,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class SoundsMod
 {
-    public static final DeferredRegister<SoundEvent> SOUNDS = new DeferredRegister<>(ForgeRegistries.SOUND_EVENTS, BoundTotems.MOD_ID);
+    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BoundTotems.MOD_ID);
 
     public static final RegistryObject<SoundEvent> EXHALE = register("exhale");
     public static final RegistryObject<SoundEvent> BIND_SHELF = register("bind_shelf");

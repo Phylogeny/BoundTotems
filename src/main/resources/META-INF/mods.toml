@@ -1,8 +1,9 @@
 modLoader="javafml"
-loaderVersion="[31,)"
+loaderVersion="[36,)"
+license="Public domain"
 [[mods]]
     modId="boundtotems"
-    version="${version}"
+    version="${file.jarVersion}"
     displayName="Bound Totems"
     logoFile="logo.png"
     description="This mod allows Totems of Undying to be bound to living entities, and adds a totem shelf that can store them when bound to the same entity. If the totem is anywhere in the entity's inventory, or in any totem shelf in any dimension that is bound to that entity, it will be saved from all death (even death from creative damage). A teleporting variant is also added that teleports the entity to a saved location in any dimension."
@@ -14,13 +15,13 @@ loaderVersion="[31,)"
 [[dependencies.boundtotems]]
     modId="forge"
     mandatory=true
-    versionRange="[31,)"
+    versionRange="[36,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.boundtotems]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.15.2]"
+    versionRange="[1.16.5]"
     ordering="NONE"
     side="BOTH"
 [[dependencies.boundtotems]]

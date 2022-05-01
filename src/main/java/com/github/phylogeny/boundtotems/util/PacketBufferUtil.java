@@ -2,7 +2,7 @@ package com.github.phylogeny.boundtotems.util;
 
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
@@ -23,16 +23,16 @@ public class PacketBufferUtil
         return buf.readBoolean() ? bufReader.get() : null;
     }
 
-    public static void writeVec(PacketBuffer buf, Vec3d vec)
+    public static void writeVec(PacketBuffer buf, Vector3d vec)
     {
         buf.writeDouble(vec.x);
         buf.writeDouble(vec.y);
         buf.writeDouble(vec.z);
     }
 
-    public static Vec3d readVec(PacketBuffer buf)
+    public static Vector3d readVec(PacketBuffer buf)
     {
-        return new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+        return new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
     }
 
     public static void writeAABB(PacketBuffer buf, AxisAlignedBB box)

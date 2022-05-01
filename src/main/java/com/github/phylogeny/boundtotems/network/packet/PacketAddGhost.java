@@ -5,7 +5,7 @@ import com.github.phylogeny.boundtotems.init.SoundsMod;
 import com.github.phylogeny.boundtotems.util.PacketBufferUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -17,15 +17,15 @@ public class PacketAddGhost
     private final int entityId;
     private final int maxLife;
     private final float velocity;
-    private final Vec3d targetPos;
+    private final Vector3d targetPos;
     private final Integer targetEntityId;
 
-    public PacketAddGhost(Entity entity, float velocity, int maxLife, @Nullable Vec3d targetPos, @Nullable Entity targetEntity)
+    public PacketAddGhost(Entity entity, float velocity, int maxLife, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
     {
         this(entity.getEntityId(), velocity, maxLife, targetPos, targetEntity == null ? null : targetEntity.getEntityId());
     }
 
-    public PacketAddGhost(int entityId, float velocity, int maxLife, @Nullable Vec3d targetPos, @Nullable Integer targetEntityId)
+    public PacketAddGhost(int entityId, float velocity, int maxLife, @Nullable Vector3d targetPos, @Nullable Integer targetEntityId)
     {
         this.entityId = entityId;
         this.velocity = velocity;

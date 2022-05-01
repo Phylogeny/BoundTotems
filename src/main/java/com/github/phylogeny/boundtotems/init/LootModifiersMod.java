@@ -9,7 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class LootModifiersMod
 {
-    public static final DeferredRegister<GlobalLootModifierSerializer<?>> LOOT_MODIFIERS = new DeferredRegister<>(ForgeRegistries.LOOT_MODIFIER_SERIALIZERS, BoundTotems.MOD_ID);
+    public static final DeferredRegister<GlobalLootModifierSerializer<?>> LOOT_MODIFIERS = DeferredRegister.create(ForgeRegistries.LOOT_MODIFIER_SERIALIZERS, BoundTotems.MOD_ID);
 
     public static final RegistryObject<ShelfDropRemovalModifier.Serializer> REMOVE_SHELF_DROP = LOOT_MODIFIERS.register("remove_shelf_drop", ShelfDropRemovalModifier.Serializer::new);
 }

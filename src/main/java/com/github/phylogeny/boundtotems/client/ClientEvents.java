@@ -13,10 +13,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -33,7 +33,7 @@ public class ClientEvents
 {
     private static final Map<ResourceLocation, List<Ghost>> GHOSTS = new HashMap<>();
 
-    public static void addGhost(World world, Entity entity, float velocity, int maxLife, @Nullable Vec3d targetPos, @Nullable Entity targetEntity)
+    public static void addGhost(World world, Entity entity, float velocity, int maxLife, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
     {
         ResourceLocation dimension = NBTUtil.getDimensionKey(world);
         List<Ghost> ghosts = GHOSTS.get(dimension);
@@ -83,7 +83,7 @@ public class ClientEvents
         return Minecraft.getInstance().player;
     }
 
-    public static void addKnifeRemovalEffects(Vec3d knifePos, BlockState state)
+    public static void addKnifeRemovalEffects(Vector3d knifePos, BlockState state)
     {
         BlockPos pos = new BlockPos(knifePos);
         double x = knifePos.x - pos.getX();
@@ -110,7 +110,7 @@ public class ClientEvents
                     -(motionX + rand.nextGaussian() * inaccuracy) * velocity,
                     -(motionY + rand.nextGaussian() * inaccuracy) * velocity,
                     -(motionZ + rand.nextGaussian() * inaccuracy) * velocity,
-                    state, true).multipleParticleScaleBy(0.5F));
+                    state, true).multiplyParticleScaleBy(0.5F));
     }
 
     public static void addTotemShelfCarveEffects(BlockPos pos, int stageNext, Direction facing)
@@ -168,7 +168,7 @@ public class ClientEvents
         public DiggingParticleExtended(BlockPos pos, double xCoord, double yCoord, double zCoord,
                 double xSpeed, double ySpeed, double zSpeed, BlockState state, boolean exactVelocity)
         {
-            super(getWorld(), pos.getX() + xCoord, pos.getY() + yCoord, pos.getZ() + zCoord, xSpeed, ySpeed, zSpeed, state);
+            super(Minecraft.getInstance().world, pos.getX() + xCoord, pos.getY() + yCoord, pos.getZ() + zCoord, xSpeed, ySpeed, zSpeed, state);
             setBlockPos(pos);
             if (exactVelocity)
             {

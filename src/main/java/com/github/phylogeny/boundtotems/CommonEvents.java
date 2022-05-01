@@ -7,16 +7,16 @@ import com.github.phylogeny.boundtotems.init.BlocksMod;
 import com.github.phylogeny.boundtotems.item.ItemCarvingKnife;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.loot.LootPool;
+import net.minecraft.loot.LootTables;
+import net.minecraft.loot.TableLootEntry;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.storage.loot.LootPool;
-import net.minecraft.world.storage.loot.LootTables;
-import net.minecraft.world.storage.loot.TableLootEntry;
 import net.minecraftforge.event.LootTableLoadEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 @EventBusSubscriber
 public class CommonEvents
@@ -51,8 +51,8 @@ public class CommonEvents
     }
 
     @SubscribeEvent
-    public static void onServerStart(FMLServerStartingEvent event)
+    public static void onServerStart(RegisterCommandsEvent event)
     {
-        LocateCommand.register(event.getCommandDispatcher());
+        LocateCommand.register(event.getDispatcher());
     }
 }

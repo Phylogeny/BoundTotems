@@ -6,10 +6,11 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.ITickTimer;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,8 +81,8 @@ public class InWorldRecipe
         return slides.get(timer == null ? 0 : timer.getValue());
     }
 
-    public List<String> getTooltip()
+    public List<ITextComponent> getTooltip()
     {
-        return Collections.singletonList(I18n.format(langKey, langParameters));
+        return Collections.singletonList(new TranslationTextComponent(langKey, langParameters));
     }
 }

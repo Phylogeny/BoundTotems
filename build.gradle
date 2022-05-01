@@ -1,11 +1,10 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
+        maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -17,10 +16,11 @@ version = minecraft_version + "-" + version
 group = 'com.github.phylogeny.boundtotems'
 archivesBaseName = 'BoundTotems'
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
-    mappings channel: 'snapshot', version: '20200514-1.15.1'
+    mappings channel: 'snapshot', version: '20201028-1.16.3'
     runs {
         client {
             workingDirectory project.file('run')
@@ -65,9 +65,15 @@ minecraft {
 repositories {
     maven {
         name "Progwml6 maven"
-        url  "http://dvs1.progwml6.com/files/maven"
+        url  "https://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+        name "tterrag's maven"
+        url  "https://maven.tterrag.com/"
     }
 }
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     minecraft "net.minecraftforge:forge:$minecraft_version-$forge_version"
@@ -89,7 +95,8 @@ jar {
     }
 }
 
-jar.finalizedBy('reobfJar')
+jar.finalizedBy('reobfJar') 
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -100,26 +107,5 @@ publishing {
         maven {
             url "file:///${project.projectDir}/mcmodsrepo"
         }
-    }
-}
-/*
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-build.dependsOn sourcesJar
-
-artifacts {
-    archives sourcesJar
-}
-*/
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
-        expand 'version':project.version
-    }
-
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'META-INF/mods.toml'
     }
 }

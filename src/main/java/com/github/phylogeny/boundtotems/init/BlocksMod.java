@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 public class BlocksMod
 {
-    public static final DeferredRegister<Block> BLOCKS = new DeferredRegister<>(ForgeRegistries.BLOCKS, BoundTotems.MOD_ID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, BoundTotems.MOD_ID);
 
     public static final RegistryObject<BlockTotemShelf> TOTEM_SHELF = register(BlockTotemShelf.NAME, BlockTotemShelf::new);
     public static final RegistryObject<BlockStrippedOakLog> STRIPPED_OAK_LOG = register("stripped_oak_log", BlockStrippedOakLog::new);

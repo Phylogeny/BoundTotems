@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.GameType;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
@@ -29,10 +29,10 @@ public class Ghost
     public static final Field GAME_TYPE = ObfuscationReflectionHelper.findField(NetworkPlayerInfo.class, "field_178866_b");
     private final Entity entity, targetEntity;
     private final float velocity, maxLife;
-    private Vec3d pos, motion, targetPos;
+    private Vector3d pos, motion, targetPos;
     private int life, alpha;
 
-    public Ghost(Entity entity, float velocity, int maxLife, @Nullable Vec3d targetPos, @Nullable Entity targetEntity)
+    public Ghost(Entity entity, float velocity, int maxLife, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
     {
         this.entity = entity;
         this.velocity = velocity;
@@ -42,7 +42,7 @@ public class Ghost
 
         this.targetPos = targetPos;
         this.targetEntity = targetEntity;
-        pos = entity.getPositionVector();
+        pos = entity.getPositionVec();
         updateMotion();
     }
 
@@ -58,12 +58,12 @@ public class Ghost
         if (targetEntity != null)
             targetPos = offsetTarget(targetEntity.getEyePosition(1));
 
-        Vec3d dir = targetPos.subtract(pos);
+        Vector3d dir = targetPos.subtract(pos);
         motion = dir.normalize().scale(velocity);
         alpha = (int) Math.max(150 - 150 * Math.max(1 - dir.length() + 0.1, 0), 0);
     }
 
-    private Vec3d offsetTarget(Vec3d target)
+    private Vector3d offsetTarget(Vector3d target)
     {
         return target.subtract(0, entity.getHeight() * (entity instanceof ItemEntity ? 1 : 0.5), 0);
     }
@@ -72,8 +72,8 @@ public class Ghost
     {
         IRenderTypeBuffer.Impl typeBuffer = BufferBuilderTransparent.getRenderTypeBuffer();
         float partialTicks = event.getPartialTicks();
-        Vec3d pos = this.pos.add(motion.scale(partialTicks));
-        Vec3d posCamera = Minecraft.getInstance().gameRenderer.getActiveRenderInfo().getProjectedView();
+        Vector3d pos = this.pos.add(motion.scale(partialTicks));
+        Vector3d posCamera = Minecraft.getInstance().gameRenderer.getActiveRenderInfo().getProjectedView();
         double dx = pos.x - posCamera.x;
         double dy = pos.y - posCamera.y;
         double dz = pos.z - posCamera.z;

@@ -1,6 +1,7 @@
 package com.github.phylogeny.boundtotems;
 
 import com.github.phylogeny.boundtotems.capability.ShelfPositionsEvents;
+import com.github.phylogeny.boundtotems.client.ModPropertyGetters;
 import com.github.phylogeny.boundtotems.client.renderer.RendererTileEntityTotemShelf;
 import com.github.phylogeny.boundtotems.init.*;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
@@ -55,5 +56,6 @@ public class BoundTotems
     {
         ClientRegistry.bindTileEntityRenderer(TileEntitiesMod.TOTEM_SHELF.get(), RendererTileEntityTotemShelf::new);
         ClientRegistry.bindTileEntityRenderer(TileEntitiesMod.TOTEM_SHELF_BINDING.get(), RendererTileEntityTotemShelf::new);
+        ModPropertyGetters.register();
     }
 }

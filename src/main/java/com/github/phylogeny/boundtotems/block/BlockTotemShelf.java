@@ -2,7 +2,7 @@ package com.github.phylogeny.boundtotems.block;
 
 import com.github.phylogeny.boundtotems.init.ItemsMod;
 import com.github.phylogeny.boundtotems.init.SoundsMod;
-import com.github.phylogeny.boundtotems.item.ItemPlank;
+import com.github.phylogeny.boundtotems.item.ItemCarvingKnife;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
 import com.github.phylogeny.boundtotems.network.packet.PacketShelfSmokeParticles;
 import com.github.phylogeny.boundtotems.tileentity.TileEntityTotemShelf;
@@ -31,16 +31,21 @@ import net.minecraft.state.properties.DoubleBlockHalf;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.IItemHandler;
 
@@ -138,7 +143,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
         }
 
         @Override
-        public String getName()
+        public String getString()
         {
             return name().toLowerCase();
         }
@@ -146,7 +151,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
         @Override
         public String toString()
         {
-            return getName();
+            return getString();
         }
     }
 
@@ -192,7 +197,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
 
     private static boolean isInvalid(BlockState state)
     {
-        return (state.getBlock() != Blocks.STRIPPED_OAK_LOG && !(state.getBlock() instanceof BlockStrippedOakLog)) || state.get(LogBlock.AXIS) != Axis.Y;
+        return (state.getBlock() != Blocks.STRIPPED_OAK_LOG && !(state.getBlock() instanceof BlockStrippedOakLog)) || state.get(RotatedPillarBlock.AXIS) != Axis.Y;
     }
 
     @Override
@@ -217,14 +222,14 @@ public class BlockTotemShelf extends BlockWaterLoggable
         }
         if (te instanceof TileEntityTotemShelf)
         {
-            Vec3d startPos = context.getEntity().getEyePosition(1);
-            Vec3d endPos = startPos.add(context.getEntity().getLookVec().scale(10));
+            Vector3d startPos = context.getEntity().getEyePosition(1);
+            Vector3d endPos = startPos.add(context.getEntity().getLookVec().scale(10));
             VoxelShape shape = SHAPES.get(state);
             BlockRayTraceResult targetShelf = shape.rayTrace(startPos, endPos, pos);
             VoxelShape shapeClosest = null;
             double distanceShortest = Double.MAX_VALUE;
             TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
-            Vec3d knifePos = totemShelf.getKnifePos();
+            Vector3d knifePos = totemShelf.getKnifePos();
             if (knifePos != null)
             {
                 VoxelShape shapeKnife = SHAPE_KNIFE.withOffset(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ());
@@ -307,7 +312,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
     public BlockState getStateForPlacement(BlockItemUseContext context)
     {
         if (context.getPos().getY() < 255 && context.getWorld().getBlockState(context.getPos().up()).isReplaceable(context))
-            return super.getStateForPlacement(context).with(FACING, context.getPlacementHorizontalFacing().getOpposite());
+            return Objects.requireNonNull(super.getStateForPlacement(context)).with(FACING, context.getPlacementHorizontalFacing().getOpposite());
 
         return null;
     }
@@ -351,8 +356,8 @@ public class BlockTotemShelf extends BlockWaterLoggable
 
     public static void addShelfBreakingEffects(World world, BlockPos pos, BlockState state, boolean addFlames)
     {
-        world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundsMod.EXHALE.get(), SoundCategory.MASTER, 1F, 2.4F - world.rand.nextFloat() * 1F);
-        PacketNetwork.sendToAllAround(new PacketShelfSmokeParticles(state.getCollisionShape(world, pos, null).getBoundingBox().offset(pos).grow(0.1), addFlames), world, pos);
+        world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundsMod.EXHALE.get(), SoundCategory.MASTER, 1F, 2.4F - world.rand.nextFloat());
+        PacketNetwork.sendToAllAround(new PacketShelfSmokeParticles(state.getCollisionShape(world, pos).getBoundingBox().offset(pos).grow(0.1), addFlames), world, pos);
     }
 
     public static void spawnShelfSmokeParticles(World world, AxisAlignedBB box, boolean addFlames)
@@ -405,7 +410,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result)
     {
         ItemStack stack = player.getHeldItem(hand);
-        if (stack.getItem() instanceof ItemPlank)
+        if (stack.getItem() == ItemsMod.PLANK.get())
         {
             int stage = state.get(STAGE);
             if (stage > 5 && stage < 10)
@@ -510,9 +515,14 @@ public class BlockTotemShelf extends BlockWaterLoggable
     }
 
     @Override
-    public float getBlockHardness(BlockState state, IBlockReader world, BlockPos pos)
+    public float getPlayerRelativeBlockHardness(BlockState state, PlayerEntity player, IBlockReader world, BlockPos pos)
     {
-        return state.get(STAGE) > 5 ? 5F : 1.5F;
+        float hardness = state.getBlockHardness(world, pos);
+        if (hardness == -1 || player.getHeldItemMainhand().getItem() instanceof ItemCarvingKnife && state.hasProperty(STAGE) && state.get(STAGE) > 5)
+            return 0;
+
+        float speed = ForgeHooks.canHarvestBlock(state, player, world, pos) ? 30 : 100;
+        return player.getDigSpeed(state, pos) / hardness / speed;
     }
 
     @Override
@@ -530,7 +540,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
 
         IItemHandler inventory = CapabilityUtil.getInventory((TileEntityTotemShelf) te);
         double input = 0;
-        double size = (double) inventory.getSlots();
+        double size = inventory.getSlots();
         for (int i = 0; i < size; i++)
             input += inventory.getStackInSlot(i).isEmpty() ? 0 : 15 / size;
 

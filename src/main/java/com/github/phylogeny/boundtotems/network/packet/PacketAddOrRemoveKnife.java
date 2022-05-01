@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -20,14 +20,14 @@ public class PacketAddOrRemoveKnife
 {
     private final BlockPos pos;
     private final ItemStack knifeStack;
-    private final Vec3d knifePos, knifeDirection;
+    private final Vector3d knifePos, knifeDirection;
 
-    public PacketAddOrRemoveKnife(BlockPos pos, Vec3d knifePos, ItemStack knifeStack)
+    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack)
     {
         this(pos, knifePos, knifeStack, null);
     }
 
-    public PacketAddOrRemoveKnife(BlockPos pos, Vec3d knifePos, ItemStack knifeStack, Vec3d knifeDirection)
+    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack, Vector3d knifeDirection)
     {
         this.pos = pos;
         this.knifePos = knifePos;

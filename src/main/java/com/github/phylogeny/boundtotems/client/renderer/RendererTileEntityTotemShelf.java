@@ -13,7 +13,6 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.Vector3f;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
@@ -22,7 +21,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.items.IItemHandler;
 
 import java.util.function.Supplier;
@@ -52,7 +52,7 @@ public class RendererTileEntityTotemShelf extends TileEntityRenderer<TileEntityT
                 if (facing.getAxis() == Axis.X)
                     facing = facing.getOpposite();
 
-                matrixStack.rotate(Vector3f.YP.rotation((float) Math.toRadians(facing.getHorizontalAngle())));
+                matrixStack.rotate(Vector3f.YP.rotationDegrees(facing.getHorizontalAngle()));
                 if (totemShelf instanceof TileEntityTotemShelfBinding)
                 {
                     alpha = (int) (255 * ((TileEntityTotemShelfBinding) totemShelf).getBindingPercentage());
@@ -78,15 +78,15 @@ public class RendererTileEntityTotemShelf extends TileEntityRenderer<TileEntityT
                 }
             }
             matrixStack.pop();
-            Vec3d knifePos = totemShelf.getKnifePos();
+            Vector3d knifePos = totemShelf.getKnifePos();
             if (knifePos != null)
             {
                 matrixStack.translate(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ());
-                matrixStack.rotate(Vector3f.YP.rotation((float) Math.toRadians(-90)));
-                Vec3d dir = totemShelf.getKnifeDirection();
+                matrixStack.rotate(Vector3f.YP.rotationDegrees(-90));
+                Vector3d dir = totemShelf.getKnifeDirection();
                 assert dir != null;
                 matrixStack.rotate(Vector3f.YP.rotation((float) Math.atan2(dir.x, dir.z)));
-                matrixStack.rotate(Vector3f.ZP.rotation((float) Math.toRadians(-45)));
+                matrixStack.rotate(Vector3f.ZP.rotationDegrees(-45));
                 matrixStack.rotate(Vector3f.ZP.rotation((float) Math.asin(dir.y)));
                 matrixStack.translate(0, -0.15, 0);
                 BufferBuilderTransparent.alpha = 255;

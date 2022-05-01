@@ -19,14 +19,14 @@ import java.util.function.Supplier;
 
 public class ItemsMod
 {
-    public static final DeferredRegister<Item> ITEMS = new DeferredRegister<>(ForgeRegistries.ITEMS, BoundTotems.MOD_ID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, BoundTotems.MOD_ID);
 
     public static final RegistryObject<ItemRitualDagger> RITUAL_DAGGER = registerItem(ItemRitualDagger.NAME, ItemRitualDagger::new);
     public static final RegistryObject<ItemBoundTotem> BOUND_TOTEM = registerItem("bound_totem", ItemBoundTotem::new);
     public static final RegistryObject<ItemBoundTotemTeleporting> BOUND_TOTEM_TELEPORTING = registerItem("bound_totem_teleporting", ItemBoundTotemTeleporting::new);
     public static final RegistryObject<ItemCarvingKnife> CARVING_KNIFE = registerItem("carving_knife", ItemCarvingKnife::new);
-    public static final RegistryObject<ItemPlank> PLANK = registerItem("plank", ItemPlank::new);
-    public static final RegistryObject<ItemTotemShelf> TOTEM_SHELF_ITEM = registerBlockItem(BlockTotemShelf.NAME, BlocksMod.TOTEM_SHELF, ItemTotemShelf::new);
+    public static final RegistryObject<Item> PLANK = registerItem("plank", Item::new);
+    public static final RegistryObject<BlockItem> TOTEM_SHELF_ITEM = registerBlockItem(BlockTotemShelf.NAME, BlocksMod.TOTEM_SHELF, BlockItem::new);
     public static final RegistryObject<ItemBoundCompass> BOUND_COMPASS = registerItem("bound_compass", ItemBoundCompass::new);
 
     private static final Supplier<Map<Item, Item>> IN_WORLD_ITEM_CONVERSIONS = Suppliers.memoize(() ->
@@ -53,7 +53,7 @@ public class ItemsMod
         return ITEMS.register(name, () -> function.apply(getProperties()));
     }
 
-    private static <I extends BlockItem, B extends Block> RegistryObject<I> registerBlockItem(String name, RegistryObject<B> block, BiFunction<Block, Item.Properties, I> function)
+    private static <I extends BlockItem, B extends Block> RegistryObject<I> registerBlockItem(String name, Supplier<B> block, BiFunction<Block, Item.Properties, I> function)
     {
         return ITEMS.register(name, () -> function.apply(block.get(), getProperties()));
     }

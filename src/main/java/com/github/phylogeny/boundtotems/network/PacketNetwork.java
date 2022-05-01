@@ -5,10 +5,10 @@ import com.github.phylogeny.boundtotems.network.packet.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -67,19 +67,19 @@ public class PacketNetwork
         sendToAllAround(msg, world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
     }
 
-    public static <MSG> void sendToAllAround(MSG msg, World world, Vec3d vec)
+    public static <MSG> void sendToAllAround(MSG msg, World world, Vector3d vec)
     {
         sendToAllAround(msg, world, vec.x, vec.y, vec.z);
     }
 
     public static <MSG> void sendToAllAround(MSG msg, World world, double x, double y, double z)
     {
-        INSTANCE.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(x, y, z, 128, world.dimension.getType())), msg);
+        INSTANCE.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(x, y, z, 128, world.getDimensionKey())), msg);
     }
 
-    public static <MSG> void sendToDimension(MSG msg, DimensionType dimensionType)
+    public static <MSG> void sendToDimension(MSG msg, RegistryKey<World> dimension)
     {
-        INSTANCE.send(PacketDistributor.DIMENSION.with(() -> dimensionType), msg);
+        INSTANCE.send(PacketDistributor.DIMENSION.with(() -> dimension), msg);
     }
 
     public static <MSG> void sendToServer(MSG msg)

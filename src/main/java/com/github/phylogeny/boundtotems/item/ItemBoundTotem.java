@@ -36,7 +36,7 @@ public class ItemBoundTotem extends Item
     @Override
     public ITextComponent getDisplayName(ItemStack stack)
     {
-        return super.getDisplayName(stack).appendText(" ").appendSibling(Items.TOTEM_OF_UNDYING.getDisplayName(stack));
+        return super.getDisplayName(stack).deepCopy().appendString(" ").append(Items.TOTEM_OF_UNDYING.getDisplayName(stack));
     }
 
     @Override
