@@ -40,13 +40,13 @@ public class PacketAddOrRemoveKnife
         buf.writeBlockPos(msg.pos);
         PacketBufferUtil.writeVec(buf, msg.knifePos);
         buf.writeItemStack(msg.knifeStack);
-        PacketBufferUtil.writeNullableObject(buf, msg.knifeDirection, () -> PacketBufferUtil.writeVec(buf, msg.knifeDirection));
+        PacketBufferUtil.writeNullableObject(buf, msg.knifeDirection, o -> PacketBufferUtil.writeVec(buf, o));
     }
 
     public static PacketAddOrRemoveKnife decode(PacketBuffer buf)
     {
         return new PacketAddOrRemoveKnife(buf.readBlockPos(), PacketBufferUtil.readVec(buf), buf.readItemStack(),
-                PacketBufferUtil.readNullableObject(buf, () -> PacketBufferUtil.readVec(buf)));
+                PacketBufferUtil.readNullableObject(buf, PacketBufferUtil::readVec));
     }
 
     public static class Handler

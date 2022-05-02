@@ -5,22 +5,23 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class PacketBufferUtil
 {
-    public static void writeNullableObject(PacketBuffer buf, @Nullable Object object, Runnable bufWriter)
+    public static <T> void writeNullableObject(PacketBuffer buf, @Nullable T object, Consumer<T> bufWriter)
     {
         boolean nonNull = object != null;
         buf.writeBoolean(nonNull);
         if (nonNull)
-            bufWriter.run();
+            bufWriter.accept(object);
     }
 
     @Nullable
-    public static <T> T readNullableObject(PacketBuffer buf, Supplier<T> bufReader)
+    public static <T> T readNullableObject(PacketBuffer buf, Function<PacketBuffer, T> bufReader)
     {
-        return buf.readBoolean() ? bufReader.get() : null;
+        return buf.readBoolean() ? bufReader.apply(buf) : null;
     }
 
     public static void writeVec(PacketBuffer buf, Vector3d vec)

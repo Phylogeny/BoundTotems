@@ -36,14 +36,14 @@ public class PacketAddGhost
     {
         buf.writeInt(msg.entityId);
         buf.writeFloat(msg.velocity);
-        PacketBufferUtil.writeNullableObject(buf, msg.targetPos, () -> PacketBufferUtil.writeVec(buf, msg.targetPos));
-        PacketBufferUtil.writeNullableObject(buf, msg.targetEntityId, () -> buf.writeInt(msg.targetEntityId));
+        PacketBufferUtil.writeNullableObject(buf, msg.targetPos, o -> PacketBufferUtil.writeVec(buf, o));
+        PacketBufferUtil.writeNullableObject(buf, msg.targetEntityId, buf::writeInt);
     }
 
     public static PacketAddGhost decode(PacketBuffer buf)
     {
         return new PacketAddGhost(buf.readInt(), buf.readFloat(),
-                PacketBufferUtil.readNullableObject(buf, () -> PacketBufferUtil.readVec(buf)), PacketBufferUtil.readNullableObject(buf, buf::readInt));
+                PacketBufferUtil.readNullableObject(buf, PacketBufferUtil::readVec), PacketBufferUtil.readNullableObject(buf, PacketBuffer::readInt));
     }
 
     public static class Handler

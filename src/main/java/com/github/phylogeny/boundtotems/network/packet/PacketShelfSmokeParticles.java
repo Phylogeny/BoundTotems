@@ -38,13 +38,13 @@ public class PacketShelfSmokeParticles
 
     public static void encode(PacketShelfSmokeParticles msg, PacketBuffer buf)
     {
-        PacketBufferUtil.writeNullableObject(buf, msg.box, () -> PacketBufferUtil.writeAABB(buf, msg.box));
+        PacketBufferUtil.writeNullableObject(buf, msg.box, o -> PacketBufferUtil.writeAABB(buf, o));
         buf.writeBlockPos(msg.pos);
     }
 
     public static PacketShelfSmokeParticles decode(PacketBuffer buf)
     {
-        return new PacketShelfSmokeParticles(PacketBufferUtil.readNullableObject(buf, () -> PacketBufferUtil.readAABB(buf)), buf.readBlockPos());
+        return new PacketShelfSmokeParticles(PacketBufferUtil.readNullableObject(buf, PacketBufferUtil::readAABB), buf.readBlockPos());
     }
 
     public static class Handler

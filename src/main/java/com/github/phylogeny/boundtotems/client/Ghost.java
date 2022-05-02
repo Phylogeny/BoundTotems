@@ -36,7 +36,7 @@ public class Ghost
     public Ghost(Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
     {
         this.entity = entity;
-        this.velocity = velocity * 2;
+        this.velocity = velocity;
         halfEntityWidth = entity.getWidth() / 2F;
         if (targetPos != null)
             targetPos = offsetTarget(targetPos);
