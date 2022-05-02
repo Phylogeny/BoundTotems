@@ -10,6 +10,7 @@ import com.github.phylogeny.boundtotems.init.TileEntitiesMod;
 import com.github.phylogeny.boundtotems.item.ItemBoundTotem;
 import com.github.phylogeny.boundtotems.item.ItemRitualDagger;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
+import com.github.phylogeny.boundtotems.network.packet.PacketAddGhost;
 import com.github.phylogeny.boundtotems.network.packet.PacketAddOrRemoveKnife;
 import com.github.phylogeny.boundtotems.util.CapabilityUtil;
 import com.github.phylogeny.boundtotems.util.EntityUtil;
@@ -301,6 +302,7 @@ public class TileEntityTotemShelf extends TileEntity
 
         positions.add(pos);
         positionTable.put(dimension, positions);
+        PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F, world.getBlockState(pos).getCollisionShape(world, pos).getBoundingBox().offset(pos).getCenter(), null), entity);
     }
 
     private void charShelf(ServerWorld world, BlockPos pos) {

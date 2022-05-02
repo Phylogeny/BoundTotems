@@ -20,16 +20,15 @@ public class PacketAddGhost
     private final Vector3d targetPos;
     private final Integer targetEntityId;
 
-    public PacketAddGhost(Entity entity, float velocity, int maxLife, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
+    public PacketAddGhost(Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
     {
-        this(entity.getEntityId(), velocity, maxLife, targetPos, targetEntity == null ? null : targetEntity.getEntityId());
+        this(entity.getEntityId(), velocity, targetPos, targetEntity == null ? null : targetEntity.getEntityId());
     }
 
-    public PacketAddGhost(int entityId, float velocity, int maxLife, @Nullable Vector3d targetPos, @Nullable Integer targetEntityId)
+    public PacketAddGhost(int entityId, float velocity, @Nullable Vector3d targetPos, @Nullable Integer targetEntityId)
     {
         this.entityId = entityId;
         this.velocity = velocity;
-        this.maxLife = maxLife;
         this.targetPos = targetPos;
         this.targetEntityId = targetEntityId;
     }
@@ -38,7 +37,6 @@ public class PacketAddGhost
     {
         buf.writeInt(msg.entityId);
         buf.writeFloat(msg.velocity);
-        buf.writeInt(msg.maxLife);
         PacketBufferUtil.writeNullableObject(buf, msg.targetPos, () -> PacketBufferUtil.writeVec(buf, msg.targetPos));
         PacketBufferUtil.writeNullableObject(buf, msg.targetEntityId, () -> buf.writeInt(msg.targetEntityId));
     }
@@ -61,7 +59,7 @@ public class PacketAddGhost
                     return;
 
                 ClientEvents.playSoundAtEntity(entity, SoundsMod.EXHALE.get(),1.4F - world.rand.nextFloat() * 0.8F);
-                ClientEvents.addGhost(world, entity, msg.velocity, msg.maxLife, msg.targetPos,
+                ClientEvents.addGhost(world, entity, msg.velocity, msg.targetPos,
                         msg.targetEntityId == null ? null : world.getEntityByID(msg.targetEntityId));
             });
             ctx.get().setPacketHandled(true);

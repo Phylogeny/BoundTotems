@@ -33,14 +33,14 @@ public class ClientEvents
 {
     private static final Map<ResourceLocation, List<Ghost>> GHOSTS = new HashMap<>();
 
-    public static void addGhost(World world, Entity entity, float velocity, int maxLife, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
+    public static void addGhost(World world, Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
     {
         ResourceLocation dimension = NBTUtil.getDimensionKey(world);
         List<Ghost> ghosts = GHOSTS.get(dimension);
         if (ghosts == null)
             ghosts = new ArrayList<>();
 
-        ghosts.add(new Ghost(entity, velocity, maxLife, targetPos, targetEntity));
+        ghosts.add(new Ghost(entity, velocity, targetPos, targetEntity));
         GHOSTS.put(dimension, ghosts);
     }
 

@@ -136,7 +136,7 @@ public class ItemRitualDagger extends Item
 
     private void sendGhostPacket(PlayerEntity player, Entity entity)
     {
-        PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.1F, 40, null, player), entity);
+        PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F, null, player), entity);
     }
 
     @Override
