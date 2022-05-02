@@ -11,7 +11,9 @@
               "condition": "minecraft:block_state_property",
               "block": "boundtotems:totem_shelf",
               "properties": {
-                "half": "lower"
+                "half": "lower",
+                "binding_state": "not_bound",
+                "stage": "10"
               }
             }
           ],
