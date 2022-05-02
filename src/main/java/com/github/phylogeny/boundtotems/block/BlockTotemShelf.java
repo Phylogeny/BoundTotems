@@ -51,6 +51,7 @@ import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -354,20 +355,36 @@ public class BlockTotemShelf extends BlockWaterLoggable
         super.onBlockHarvested(world, pos, state, player);
     }
 
-    public static void addShelfBreakingEffects(World world, BlockPos pos, BlockState state, boolean addFlames)
+    public static void addShelfBreakingEffects(World world, BlockPos pos, BlockState state, boolean charShelf)
     {
         world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundsMod.EXHALE.get(), SoundCategory.MASTER, 1F, 2.4F - world.rand.nextFloat());
-        PacketNetwork.sendToAllAround(new PacketShelfSmokeParticles(state.getCollisionShape(world, pos).getBoundingBox().offset(pos).grow(0.1), addFlames), world, pos);
+        PacketNetwork.sendToAllAround(new PacketShelfSmokeParticles(world, pos, state, charShelf), world, pos);
     }
 
-    public static void spawnShelfSmokeParticles(World world, AxisAlignedBB box, boolean addFlames)
+    public static void spawnShelfSmokeParticles(World world, AxisAlignedBB box)
     {
-        for (int i = 0; i < (addFlames ? 36 : 24); i++)
-            world.addParticle(addFlames && i % 3 == 0 ? ParticleTypes.FLAME : ParticleTypes.LARGE_SMOKE,
-                    box.minX + (box.maxX - box.minX) * world.rand.nextDouble(),
-                    box.minY + (box.maxY - box.minY) * world.rand.nextDouble(),
-                    box.minZ + (box.maxZ - box.minZ) * world.rand.nextDouble(),
-                    0, 0, 0);
+        spawnShelfSmokeParticles(world, VoxelShapes.empty(), box, false);
+    }
+
+    public static void spawnShelfSmokeParticles(World world, VoxelShape shape)
+    {
+        spawnShelfSmokeParticles(world, shape, shape.getBoundingBox().grow(0.1), true);
+    }
+
+    private static void spawnShelfSmokeParticles(World world, VoxelShape shape, AxisAlignedBB box, boolean addFlames)
+    {
+        ReuseableStream<AxisAlignedBB> shapeStream = new ReuseableStream<>(shape.toBoundingBoxList().stream());
+        for (int i = 0; i < (addFlames ? 36 : 24); i++) {
+            AtomicReference<Vector3d> vec = new AtomicReference<>();
+            do {
+                vec.set(new Vector3d(box.minX + (box.maxX - box.minX) * world.rand.nextDouble(),
+                                     box.minY + (box.maxY - box.minY) * world.rand.nextDouble(),
+                                     box.minZ + (box.maxZ - box.minZ) * world.rand.nextDouble()));
+            }
+            while (shapeStream.createStream().anyMatch(b -> b.contains(vec.get())));
+            world.addParticle(addFlames ? ParticleTypes.FLAME : ParticleTypes.LARGE_SMOKE,
+                    vec.get().x, vec.get().y, vec.get().z, 0, 0, 0);
+        }
     }
 
     @Override

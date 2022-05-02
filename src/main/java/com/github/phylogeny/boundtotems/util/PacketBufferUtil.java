@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 public class PacketBufferUtil
 {
-    public static void writeNullableObject(PacketBuffer buf, Object object, Runnable bufWriter)
+    public static void writeNullableObject(PacketBuffer buf, @Nullable Object object, Runnable bufWriter)
     {
         boolean nonNull = object != null;
         buf.writeBoolean(nonNull);
