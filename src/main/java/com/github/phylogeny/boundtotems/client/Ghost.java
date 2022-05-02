@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.LivingRenderer;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.MathHelper;
@@ -111,7 +112,16 @@ public class Ghost
                             ReflectionUtil.setValue(GAME_TYPE, playerInfo, GameType.SPECTATOR);
                             boolean isInvisible = entity.isInvisible();
                             entity.setInvisible(true);
+                            Entity leashHolder = null;
+                            if (entity instanceof MobEntity) {
+                                MobEntity mob = (MobEntity) entity;
+                                leashHolder = mob.getLeashHolder();
+                                mob.setVehicleEntityId(0);
+                            }
                             rendererManager.renderEntityStatic(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
+                            if (leashHolder != null)
+                                ((MobEntity) entity).setLeashHolder(leashHolder, false);
+
                             ReflectionUtil.setValue(GAME_TYPE, playerInfo, gameType);
                             entity.setInvisible(isInvisible);
                         }
