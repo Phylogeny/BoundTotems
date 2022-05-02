@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 public class PacketAddGhost
 {
     private final int entityId;
-    private final int maxLife;
     private final float velocity;
     private final Vector3d targetPos;
     private final Integer targetEntityId;
@@ -43,7 +42,7 @@ public class PacketAddGhost
 
     public static PacketAddGhost decode(PacketBuffer buf)
     {
-        return new PacketAddGhost(buf.readInt(), buf.readFloat(), buf.readInt(),
+        return new PacketAddGhost(buf.readInt(), buf.readFloat(),
                 PacketBufferUtil.readNullableObject(buf, () -> PacketBufferUtil.readVec(buf)), PacketBufferUtil.readNullableObject(buf, buf::readInt));
     }
 
