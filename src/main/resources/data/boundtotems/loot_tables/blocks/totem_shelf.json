@@ -24,8 +24,7 @@
         {
           "condition": "minecraft:survives_explosion"
         }
-      ],
-      "function": "boundtotems:remove_shelf_drop"
+      ]
     }
   ]
 }

@@ -36,7 +36,6 @@ public class BoundTotems
         TileEntitiesMod.TILE_ENTITIES.register(bus);
         RecipesMod.RECIPES.register(bus);
         SoundsMod.SOUNDS.register(bus);
-        LootModifiersMod.LOOT_MODIFIERS.register(bus);
         bus.addListener(this::clientSetup);
     }
 

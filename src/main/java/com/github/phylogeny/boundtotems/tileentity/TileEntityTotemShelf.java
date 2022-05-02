@@ -5,7 +5,6 @@ import com.github.phylogeny.boundtotems.Config;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf.BindingState;
 import com.github.phylogeny.boundtotems.block.PositionsTotemShelf;
-import com.github.phylogeny.boundtotems.block.ShelfDropRemovalModifier;
 import com.github.phylogeny.boundtotems.init.SoundsMod;
 import com.github.phylogeny.boundtotems.init.TileEntitiesMod;
 import com.github.phylogeny.boundtotems.item.ItemBoundTotem;
@@ -17,7 +16,6 @@ import com.github.phylogeny.boundtotems.util.EntityUtil;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.LivingEntity;
@@ -269,10 +267,7 @@ public class TileEntityTotemShelf extends TileEntity
         LivingEntity entity = NBTUtil.getBoundEntity(knife, (ServerWorld) world);
         if (entity == null || entity.getDistanceSq(pos.getX(), pos.getY(), pos.getZ()) > Math.pow(Config.SERVER.maxDistanceToShelf.get(), 2))
         {
-            ShelfDropRemovalModifier.setRemoval(true);
-            world.setBlockState(pos, Blocks.AIR.getDefaultState());
-            ShelfDropRemovalModifier.setRemoval(false);
-            BlockTotemShelf.addShelfBreakingEffects(world, pos, state, false);
+            charShelf((ServerWorld) world, pos);
             return;
         }
         AtomicInteger count = new AtomicInteger();
@@ -290,16 +285,7 @@ public class TileEntityTotemShelf extends TileEntity
                 boolean forceRemoval = countBurn.incrementAndGet() == burnIndex;
                 if (forceRemoval)
                 {
-                    BlockState statePrimary = world.getBlockState(shelf.pos);
-                    PositionsTotemShelf positions = BlockTotemShelf.getTotemShelfPositions(statePrimary, world, shelf.pos);
-                    world.setBlockState(shelf.pos, statePrimary.with(BlockTotemShelf.CHARRED, true));
-                    if (positions != null)
-                    {
-                        BlockPos posSecondary = positions.getPosOffset();
-                        world.setBlockState(posSecondary, world.getBlockState(posSecondary).with(BlockTotemShelf.CHARRED, true));
-                    }
-                    EntityUtil.spawnLightning(statePrimary, world, shelf.pos);
-                    BlockTotemShelf.addShelfBreakingEffects(world, shelf.pos, statePrimary, true);
+                    charShelf(world, shelf.pos);
                     count.decrementAndGet();
                 }
                 return new ShelfVisitationResult(forceRemoval, !forceRemoval);
@@ -315,6 +301,19 @@ public class TileEntityTotemShelf extends TileEntity
 
         positions.add(pos);
         positionTable.put(dimension, positions);
+    }
+
+    private void charShelf(ServerWorld world, BlockPos pos) {
+        BlockState statePrimary = world.getBlockState(pos);
+        PositionsTotemShelf positions = BlockTotemShelf.getTotemShelfPositions(statePrimary, world, pos);
+        world.setBlockState(pos, statePrimary.with(BlockTotemShelf.CHARRED, true));
+        if (positions != null)
+        {
+            BlockPos posSecondary = positions.getPosOffset();
+            world.setBlockState(posSecondary, world.getBlockState(posSecondary).with(BlockTotemShelf.CHARRED, true));
+        }
+        EntityUtil.spawnLightning(statePrimary, world, pos);
+        BlockTotemShelf.addShelfBreakingEffects(world, pos, statePrimary, true);
     }
 
     public static void visitTotemShelves(LivingEntity entity, BiFunction<ServerWorld, TileEntityTotemShelf, ShelfVisitationResult> action)
