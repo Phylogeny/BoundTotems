@@ -5,6 +5,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -12,10 +13,9 @@ public class PacketBufferUtil
 {
     public static <T> void writeNullableObject(PacketBuffer buf, @Nullable T object, Consumer<T> bufWriter)
     {
-        boolean nonNull = object != null;
-        buf.writeBoolean(nonNull);
-        if (nonNull)
-            bufWriter.accept(object);
+        Optional<T> nullable = Optional.ofNullable(object);
+        buf.writeBoolean(nullable.isPresent());
+        nullable.ifPresent(bufWriter);
     }
 
     @Nullable

@@ -16,10 +16,10 @@ import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class NBTUtil
 {
@@ -225,15 +225,14 @@ public class NBTUtil
         return nbtReader.apply(nbt.getCompound(key));
     }
 
-    public static void writeNullableObject(Object object, Runnable nbtWriter)
+    public static <T> void writeNullableObject(@Nullable T object, Consumer<T> nbtWriter)
     {
-        if (object != null)
-            nbtWriter.run();
+        Optional.ofNullable(object).ifPresent(nbtWriter);
     }
 
     @Nullable
-    public static <T> T readNullableObject(CompoundNBT nbt, String key, Supplier<T> nbtReader)
+    public static <T> T readNullableObject(CompoundNBT nbt, String key, Function<String, T> nbtReader)
     {
-        return nbt.contains(key) ? nbtReader.get() : null;
+        return nbt.contains(key) ? nbtReader.apply(key) : null;
     }
 }

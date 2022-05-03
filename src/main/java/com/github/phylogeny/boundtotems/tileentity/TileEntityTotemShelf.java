@@ -96,18 +96,18 @@ public class TileEntityTotemShelf extends TileEntity
         NBTUtil.writeObjectToSubTag(nbt, NBTUtil.KNIFE, nbtSub -> knife.write(nbtSub));
         writeVec(nbt, knifePos, NBTUtil.POSITION);
         writeVec(nbt, knifeDirection, NBTUtil.DIRECTION);
-        NBTUtil.writeNullableObject(boundEntityID, () -> nbt.put("bound_entity_id", NBTUtil.writeUniqueId(boundEntityID)));
+        NBTUtil.writeNullableObject(boundEntityID, key -> nbt.put("bound_entity_id", NBTUtil.writeUniqueId(key)));
         nbt.put("items", getInventory().serializeNBT());
         return nbt;
     }
 
     private void writeVec(CompoundNBT nbt, Vector3d vec, String key)
     {
-        NBTUtil.writeNullableObject(vec, () -> NBTUtil.writeObjectToSubTag(nbt, key, nbtSub ->
+        NBTUtil.writeNullableObject(vec, v -> NBTUtil.writeObjectToSubTag(nbt, key, nbtSub ->
         {
-            nbtSub.putDouble(NBTUtil.X, vec.x);
-            nbtSub.putDouble(NBTUtil.Y, vec.y);
-            nbtSub.putDouble(NBTUtil.Z, vec.z);
+            nbtSub.putDouble(NBTUtil.X, v.x);
+            nbtSub.putDouble(NBTUtil.Y, v.y);
+            nbtSub.putDouble(NBTUtil.Z, v.z);
         }));
     }
 
@@ -118,14 +118,14 @@ public class TileEntityTotemShelf extends TileEntity
         knife = NBTUtil.readObjectFromSubTag(nbt, NBTUtil.KNIFE, ItemStack::read);
         knifePos = readVec(nbt, NBTUtil.POSITION);
         knifeDirection = readVec(nbt, NBTUtil.DIRECTION);
-        boundEntityID = NBTUtil.readNullableObject(nbt, "bound_entity_id", () -> NBTUtil.readUniqueId(nbt.getCompound("bound_entity_id")));
+        boundEntityID = NBTUtil.readNullableObject(nbt, "bound_entity_id", key -> NBTUtil.readUniqueId(nbt.getCompound(key)));
         if (nbt.contains("items"))
             getInventory().deserializeNBT((CompoundNBT) nbt.get("items"));
     }
 
     private Vector3d readVec(CompoundNBT nbt, String key)
     {
-        return NBTUtil.readNullableObject(nbt, key, () -> NBTUtil.readObjectFromSubTag(nbt, key, nbtSub ->
+        return NBTUtil.readNullableObject(nbt, key, k -> NBTUtil.readObjectFromSubTag(nbt, k, nbtSub ->
                 new Vector3d(nbtSub.getDouble(NBTUtil.X), nbtSub.getDouble(NBTUtil.Y), nbtSub.getDouble(NBTUtil.Z))));
     }
 
