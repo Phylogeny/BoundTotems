@@ -24,8 +24,10 @@
     "chat.boundtotems.teleport.failed": "Bound teleporting totem dimension change failed.",
 
     "_comment": "Commands",
-    "command.boundtotems.shelf.locate.entity": "Only living entities can send this command.",
-    "command.boundtotems.shelf.locate.none": "There are no totem shelves bound to you in this dimension.",
+    "command.boundtotems.shelf.locate.args.entity": "Only living entities can send this command.",
+    "command.boundtotems.shelf.locate.result.none": "There are no totem shelves bound to %s in this dimension.",
+    "command.boundtotems.shelf.locate.result.none.self": "you",
+    "command.boundtotems.shelf.locate.result.none.other": "that entity",
 
     "_comment": "Configs - Client",
     "config.boundtotems.client": "Client",

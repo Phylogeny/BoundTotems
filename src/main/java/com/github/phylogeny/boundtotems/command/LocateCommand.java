@@ -5,11 +5,13 @@ import com.github.phylogeny.boundtotems.tileentity.TileEntityTotemShelf;
 import com.github.phylogeny.boundtotems.util.LangUtil;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Direction;
@@ -33,15 +35,15 @@ public class LocateCommand
     public static void register(CommandDispatcher<CommandSource> dispatcher)
     {
         dispatcher.register(Commands.literal("locate").requires(source -> source.hasPermissionLevel(2))
-            .then(Commands.literal(NAME).executes(command -> locateStructure(command.getSource()))));
+            .then(Commands.literal(NAME).then(Commands.argument("target", EntityArgument.entities())
+                        .executes(command -> locateStructure(command, EntityArgument.getEntity(command, "target"))))));
     }
 
-    private static int locateStructure(CommandSource source) throws CommandSyntaxException
+    private static int locateStructure(CommandContext<CommandSource> command, Entity entity) throws CommandSyntaxException
     {
-        BlockPos pos = new BlockPos(source.getPos());
-        Entity entity = source.getEntity();
+        BlockPos pos = new BlockPos(command.getSource().getPos());
         if (!(entity instanceof LivingEntity))
-            throwException("entity");
+            throwException("args.entity");
 
         AtomicReference<TileEntityTotemShelf> nearestShelf = new AtomicReference<>();
         AtomicDouble distanceShortest = new AtomicDouble(Double.POSITIVE_INFINITY);
@@ -56,7 +58,7 @@ public class LocateCommand
             return new TileEntityTotemShelf.ShelfVisitationResult(false, true);
         });
         if (nearestShelf.get() == null)
-            throwException("none");
+            throwException("result.none", getLocalizedText("none." + (entity == command.getSource().getEntity() ? "self" : "other")));
 
         BlockPos target = nearestShelf.get().getPos();
         int distance = MathHelper.floor(getDistance(pos.getX(), pos.getZ(), target.getX(), target.getZ()));
@@ -69,13 +71,17 @@ public class LocateCommand
         ITextComponent message = TextComponentUtils.wrapWithSquareBrackets(new TranslationTextComponent("chat.coordinates", target.getX(), exactTarget.getY(), target.getZ())).modifyStyle(text ->
                 text.setFormatting(TextFormatting.GREEN).setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + exactTarget.getX() + " " + exactTarget.getY() + " " + exactTarget.getZ()))
                         .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslationTextComponent("chat.coordinates.tooltip"))));
-        source.sendFeedback(new TranslationTextComponent("commands.locate.success", NAME, message, distance), false);
+        command.getSource().sendFeedback(new TranslationTextComponent("commands.locate.success", NAME, message, distance), false);
         return distance;
     }
 
-    private static void throwException(String name) throws CommandSyntaxException
+    private static void throwException(String name, Object... args) throws CommandSyntaxException
     {
-        throw new SimpleCommandExceptionType(LangUtil.getLocalizedText("command", "shelf.locate." + name)).create();
+        throw new SimpleCommandExceptionType(getLocalizedText(name, args)).create();
+    }
+
+    private static TranslationTextComponent getLocalizedText(String name, Object... args) {
+        return LangUtil.getLocalizedText("command", "shelf.locate." + name, args);
     }
 
     private static float getDistance(int x1, int z1, int x2, int z2)
