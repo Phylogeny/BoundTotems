@@ -6,8 +6,8 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Hashtable;
 import java.util.Set;
 
-public interface IShelfPositions
-{
+public interface IShelfPositions {
     Hashtable<ResourceLocation, Set<BlockPos>> getPositions();
+
     void setPositions(Hashtable<ResourceLocation, Set<BlockPos>> positions);
 }

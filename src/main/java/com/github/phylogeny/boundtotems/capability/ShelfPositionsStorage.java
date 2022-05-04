@@ -12,16 +12,13 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-public class ShelfPositionsStorage implements Capability.IStorage<IShelfPositions>
-{
+public class ShelfPositionsStorage implements Capability.IStorage<IShelfPositions> {
     @Nullable
     @Override
-    public INBT writeNBT(Capability<IShelfPositions> capability, IShelfPositions instance, Direction side)
-    {
+    public INBT writeNBT(Capability<IShelfPositions> capability, IShelfPositions instance, Direction side) {
         ListNBT dimensions = new ListNBT();
         ListNBT positions = new ListNBT();
-        instance.getPositions().forEach((dimension, posSet) ->
-        {
+        instance.getPositions().forEach((dimension, posSet) -> {
             dimensions.add(StringNBT.valueOf(dimension.toString()));
             ListNBT posSetList = new ListNBT();
             posSet.forEach(pos -> posSetList.add(LongNBT.valueOf(pos.asLong())));
@@ -34,8 +31,7 @@ public class ShelfPositionsStorage implements Capability.IStorage<IShelfPosition
     }
 
     @Override
-    public void readNBT(Capability<IShelfPositions> capability, IShelfPositions instance, Direction side, INBT nbt)
-    {
+    public void readNBT(Capability<IShelfPositions> capability, IShelfPositions instance, Direction side, INBT nbt) {
         if (!(nbt instanceof CompoundNBT))
             return;
 
@@ -43,8 +39,7 @@ public class ShelfPositionsStorage implements Capability.IStorage<IShelfPosition
         ListNBT dimensions = nbtCompound.getList("shelf_dimensions", Constants.NBT.TAG_STRING);
         ListNBT positions = nbtCompound.getList("shelf_positions", Constants.NBT.TAG_LIST);
         Hashtable<ResourceLocation, Set<BlockPos>> positionsTable = new Hashtable<>();
-        for (int i = 0; i < dimensions.size(); i++)
-        {
+        for (int i = 0; i < dimensions.size(); i++) {
             Set<BlockPos> posSet = new HashSet<>();
             positions.getList(i).forEach(element -> posSet.add(BlockPos.of(((LongNBT) element).getAsLong())));
             positionsTable.put(new ResourceLocation(dimensions.get(i).getAsString()), posSet);

@@ -11,41 +11,33 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class PacketTotemParticlesAndSound
-{
+public class PacketTotemParticlesAndSound {
     private final boolean particles, sound;
     private final int entityId;
 
-    public PacketTotemParticlesAndSound(Entity entity)
-    {
+    public PacketTotemParticlesAndSound(Entity entity) {
         this(entity.getId(), Config.SERVER.spawnParticles.get(), Config.SERVER.playSound.get());
     }
 
-    public PacketTotemParticlesAndSound(int entityId, boolean particles, boolean sound)
-    {
+    public PacketTotemParticlesAndSound(int entityId, boolean particles, boolean sound) {
         this.entityId = entityId;
         this.particles = particles;
         this.sound = sound;
     }
 
-    public static void encode(PacketTotemParticlesAndSound msg, PacketBuffer buf)
-    {
+    public static void encode(PacketTotemParticlesAndSound msg, PacketBuffer buf) {
         buf.writeInt(msg.entityId);
         buf.writeBoolean(msg.particles);
         buf.writeBoolean(msg.sound);
     }
 
-    public static PacketTotemParticlesAndSound decode(PacketBuffer buf)
-    {
+    public static PacketTotemParticlesAndSound decode(PacketBuffer buf) {
         return new PacketTotemParticlesAndSound(buf.readInt(), buf.readBoolean(), buf.readBoolean());
     }
 
-    public static class Handler
-    {
-        public static void handle(PacketTotemParticlesAndSound msg, Supplier<NetworkEvent.Context> ctx)
-        {
-            ctx.get().enqueueWork(() ->
-            {
+    public static class Handler {
+        public static void handle(PacketTotemParticlesAndSound msg, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> {
                 Entity entity = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getEntity(msg.entityId) : null;
                 if (entity == null)
                     return;

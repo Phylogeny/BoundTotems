@@ -16,25 +16,20 @@ import java.util.Hashtable;
 import java.util.Set;
 
 @Mod.EventBusSubscriber
-public class ShelfPositionsEvents
-{
-    public static void register()
-    {
+public class ShelfPositionsEvents {
+    public static void register() {
         CapabilityManager.INSTANCE.register(IShelfPositions.class, new ShelfPositionsStorage(), ShelfPositions::new);
     }
 
     @SubscribeEvent
-    public static void attachCapabilities(AttachCapabilitiesEvent<Entity> event)
-    {
+    public static void attachCapabilities(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof LivingEntity)
             event.addCapability(BoundTotems.getResourceLoc("shelf_dimensions"), new ShelfPositionsProvider());
     }
 
     @SubscribeEvent
-    public static void syncDataForClonedPlayers(PlayerEvent.Clone event)
-    {
-        if (event.isWasDeath())
-        {
+    public static void syncDataForClonedPlayers(PlayerEvent.Clone event) {
+        if (event.isWasDeath()) {
             Hashtable<ResourceLocation, Set<BlockPos>> positions = CapabilityUtil.getShelfPositions(event.getOriginal()).getPositions();
             CapabilityUtil.getShelfPositions(event.getPlayer()).setPositions(positions);
         }

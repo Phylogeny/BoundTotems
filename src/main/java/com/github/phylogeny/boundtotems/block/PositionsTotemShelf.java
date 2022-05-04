@@ -22,39 +22,32 @@ import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 
-public class PositionsTotemShelf
-{
+public class PositionsTotemShelf {
     private final BlockPos posUpper, posLower;
     private final boolean isReversed;
     private final Integer stageNext;
     private final Direction facingTotemShelf;
 
-    public PositionsTotemShelf(BlockState state, BlockPos posUpper, BlockPos posLower, boolean isReversed, @Nullable PlayerEntity player)
-    {
+    public PositionsTotemShelf(BlockState state, BlockPos posUpper, BlockPos posLower, boolean isReversed, @Nullable PlayerEntity player) {
         this.posUpper = posUpper;
         this.posLower = posLower;
         this.isReversed = isReversed;
-        if (!(state.getBlock() instanceof BlockTotemShelf))
-        {
+        if (!(state.getBlock() instanceof BlockTotemShelf)) {
             stageNext = 0;
             if (player == null)
                 facingTotemShelf = Direction.NORTH;
-            else
-            {
+            else {
                 BlockRayTraceResult result = EntityUtil.rayTraceBlocks(player);
                 facingTotemShelf = result.getType() == RayTraceResult.Type.MISS ? null : result.getDirection().getAxis() == Axis.Y ? player.getDirection().getOpposite() : result.getDirection();
             }
-        }
-        else
-        {
+        } else {
             int stage = state.getValue(BlockTotemShelf.STAGE);
             stageNext = stage == BlockTotemShelf.STAGE.getPossibleValues().size() - 1 ? null : stage + 1;
             facingTotemShelf = state.getValue(BlockTotemShelf.FACING);
         }
     }
 
-    public void advanceStage(ServerWorld world)
-    {
+    public void advanceStage(ServerWorld world) {
         if (stageNext == null)
             return;
 
@@ -80,14 +73,12 @@ public class PositionsTotemShelf
         world.addFreshEntity(ItemEntity);
     }
 
-    public BlockPos getPosOffset()
-    {
+    public BlockPos getPosOffset() {
         return isReversed ? posUpper : posLower;
     }
 
     @Nullable
-    public Integer getNextStage()
-    {
+    public Integer getNextStage() {
         return stageNext;
     }
 }

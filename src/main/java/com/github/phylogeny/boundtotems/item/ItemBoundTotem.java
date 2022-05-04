@@ -14,41 +14,24 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ItemBoundTotem extends Item
-{
-    public ItemBoundTotem(Properties properties)
-    {
+public class ItemBoundTotem extends Item {
+    public ItemBoundTotem(Properties properties) {
         super(properties.rarity(Rarity.UNCOMMON).stacksTo(1));
     }
 
-//    @Override
-//    public boolean hasContainerItem(ItemStack stack)
-//    {
-//        return true;
-//    }
-//
-//    @Override
-//    public ItemStack getContainerItem(ItemStack stack)
-//    {
-//        return stack.copy();
-//    }
-
     @Override
-    public ITextComponent getName(ItemStack stack)
-    {
+    public ITextComponent getName(ItemStack stack) {
         return super.getName(stack).copy().append(" ").append(Items.TOTEM_OF_UNDYING.getName(stack));
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected)
-    {
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected) {
         if (!world.isClientSide && entity instanceof LivingEntity)
             NBTUtil.setBoundEntity(stack, (LivingEntity) entity);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
-    {
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
         NBTUtil.addBoundEntityInformation(stack, tooltip);
     }
 }

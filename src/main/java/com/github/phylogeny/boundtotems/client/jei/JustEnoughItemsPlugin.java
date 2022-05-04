@@ -29,19 +29,16 @@ import java.util.List;
 import java.util.Objects;
 
 @JeiPlugin
-public class JustEnoughItemsPlugin implements IModPlugin
-{
+public class JustEnoughItemsPlugin implements IModPlugin {
     private static final String ITEM_INFO_LANG_KEY = LangUtil.getKey(ModIds.JEI_ID, "item_info");
 
     @Override
-    public ResourceLocation getPluginUid()
-    {
+    public ResourceLocation getPluginUid() {
         return BoundTotems.getResourceLoc(ModIds.JEI_ID);
     }
 
     @Override
-    public void registerRecipes(IRecipeRegistration registration)
-    {
+    public void registerRecipes(IRecipeRegistration registration) {
         ItemStack stackBloodyKnife = new ItemStack(ItemsMod.RITUAL_DAGGER.get());
         NBTUtil.setBoundEntity(stackBloodyKnife, MathHelper.createInsecureUUID(), I18n.get(LangUtil.join(InWorldRecipeCategory.LANG_KEY_PREFIX, "entity_name")));
         CompoundNBT nbtBloody = stackBloodyKnife.getTag();
@@ -81,20 +78,17 @@ public class JustEnoughItemsPlugin implements IModPlugin
         addItemInfo(registration, ItemsMod.BOUND_COMPASS);
     }
 
-    private static <I extends Item> void addItemInfo(IRecipeRegistration registration, RegistryObject<I> item, Object... parameters)
-    {
+    private static <I extends Item> void addItemInfo(IRecipeRegistration registration, RegistryObject<I> item, Object... parameters) {
         registration.addIngredientInfo(new ItemStack(item.get()), VanillaTypes.ITEM, new TranslationTextComponent(LangUtil.join(ITEM_INFO_LANG_KEY, Objects.requireNonNull(item.get().getRegistryName()).getPath()), parameters));
     }
 
     @Override
-    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration)
-    {
+    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(Blocks.CRAFTING_TABLE), InWorldRecipeCategory.UID);
     }
 
     @Override
-    public void registerCategories(IRecipeCategoryRegistration registration)
-    {
+    public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new InWorldRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 }

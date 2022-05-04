@@ -16,59 +16,48 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class PacketAddOrRemoveKnife
-{
+public class PacketAddOrRemoveKnife {
     private final BlockPos pos;
     private final ItemStack knifeStack;
     private final Vector3d knifePos, knifeDirection;
 
-    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack)
-    {
+    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack) {
         this(pos, knifePos, knifeStack, null);
     }
 
-    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack, Vector3d knifeDirection)
-    {
+    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack, Vector3d knifeDirection) {
         this.pos = pos;
         this.knifePos = knifePos;
         this.knifeStack = knifeStack;
         this.knifeDirection = knifeDirection;
     }
 
-    public static void encode(PacketAddOrRemoveKnife msg, PacketBuffer buf)
-    {
+    public static void encode(PacketAddOrRemoveKnife msg, PacketBuffer buf) {
         buf.writeBlockPos(msg.pos);
         PacketBufferUtil.writeVec(buf, msg.knifePos);
         buf.writeItem(msg.knifeStack);
         PacketBufferUtil.writeNullableObject(buf, msg.knifeDirection, o -> PacketBufferUtil.writeVec(buf, o));
     }
 
-    public static PacketAddOrRemoveKnife decode(PacketBuffer buf)
-    {
+    public static PacketAddOrRemoveKnife decode(PacketBuffer buf) {
         return new PacketAddOrRemoveKnife(buf.readBlockPos(), PacketBufferUtil.readVec(buf), buf.readItem(),
                 PacketBufferUtil.readNullableObject(buf, PacketBufferUtil::readVec));
     }
 
-    public static class Handler
-    {
-        public static void handle(PacketAddOrRemoveKnife msg, Supplier<NetworkEvent.Context> ctx)
-        {
-            ctx.get().enqueueWork(() ->
-            {
+    public static class Handler {
+        public static void handle(PacketAddOrRemoveKnife msg, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> {
                 PlayerEntity player = ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER ? ctx.get().getSender() : ClientEvents.getPlayer();
                 if (player == null)
                     return;
 
                 TileEntity te = player.level.getBlockEntity(msg.pos);
-                if (te instanceof TileEntityTotemShelf)
-                {
+                if (te instanceof TileEntityTotemShelf) {
                     BlockState state = player.level.getBlockState(msg.pos);
-                    if (state.getBlock() instanceof BlockTotemShelf)
-                    {
+                    if (state.getBlock() instanceof BlockTotemShelf) {
                         if (msg.knifeDirection != null)
                             ((TileEntityTotemShelf) te).addKnife(msg.knifePos, msg.knifeDirection, msg.knifeStack);
-                        else
-                        {
+                        else {
                             ClientEvents.addKnifeRemovalEffects(msg.knifePos, state);
                             ((TileEntityTotemShelf) te).removeKnife();
                         }

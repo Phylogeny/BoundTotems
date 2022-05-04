@@ -17,19 +17,15 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ItemBoundTotemTeleporting extends ItemBoundTotem
-{
-    public ItemBoundTotemTeleporting(Properties properties)
-    {
+public class ItemBoundTotemTeleporting extends ItemBoundTotem {
+    public ItemBoundTotemTeleporting(Properties properties) {
         super(properties);
     }
 
     @Override
-    public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand)
-    {
+    public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!world.isClientSide)
-        {
+        if (!world.isClientSide) {
             LivingEntity entity = EntityUtil.rayTraceEntities(world, player, LivingEntity.class);
             NBTUtil.setBoundLocation(stack, entity != null ? entity : player);
         }
@@ -37,16 +33,14 @@ public class ItemBoundTotemTeleporting extends ItemBoundTotem
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected)
-    {
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected) {
         super.inventoryTick(stack, world, entity, itemSlot, isSelected);
         if (!world.isClientSide && !NBTUtil.hasBoundLocation(stack.getTag()) && entity instanceof LivingEntity)
             NBTUtil.setBoundLocation(stack, (LivingEntity) entity);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
-    {
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
         super.appendHoverText(stack, world, tooltip, flag);
         NBTUtil.addBoundLocationInformation(stack, tooltip, flag == TooltipFlags.ADVANCED);
     }

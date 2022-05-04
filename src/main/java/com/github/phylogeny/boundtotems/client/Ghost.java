@@ -25,8 +25,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Ghost
-{
+public class Ghost {
     private static final Field LAYERS = ObfuscationReflectionHelper.findField(LivingRenderer.class, "field_177097_h");
     public static final Field GAME_MODE = ObfuscationReflectionHelper.findField(NetworkPlayerInfo.class, "field_178866_b");
     private final Entity entity, targetEntity;
@@ -34,8 +33,7 @@ public class Ghost
     private Vector3d pos, motion, targetPos;
     private int alpha;
 
-    public Ghost(Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
-    {
+    public Ghost(Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity) {
         this.entity = entity;
         this.velocity = velocity;
         halfEntityWidth = entity.getBbWidth() / 2F;
@@ -48,15 +46,13 @@ public class Ghost
         updateMotion();
     }
 
-    public boolean update()
-    {
+    public boolean update() {
         boolean dead = updateMotion();
         pos = pos.add(motion);
         return dead;
     }
 
-    private boolean updateMotion()
-    {
+    private boolean updateMotion() {
         if (targetEntity != null)
             targetPos = offsetTarget(targetEntity.getEyePosition(1));
 
@@ -68,13 +64,11 @@ public class Ghost
         return dir.length() <= velocity;
     }
 
-    private Vector3d offsetTarget(Vector3d target)
-    {
+    private Vector3d offsetTarget(Vector3d target) {
         return target.subtract(0, entity.getBbHeight() * (entity instanceof ItemEntity ? 1.3 : 0.5), 0);
     }
 
-    public void render(RenderWorldLastEvent event)
-    {
+    public void render(RenderWorldLastEvent event) {
         IRenderTypeBuffer.Impl typeBuffer = BufferBuilderTransparent.getRenderTypeBuffer();
         float partialTicks = event.getPartialTicks();
         Vector3d pos = this.pos.add(motion.scale(partialTicks));
@@ -89,25 +83,20 @@ public class Ghost
         int packedLight = 15728880;
         if (entity instanceof ItemEntity)
             rendererManager.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
-        else
-        {
+        else {
             EntityRenderer<? super Entity> renderer = rendererManager.getRenderer(entity);
-            if (renderer instanceof LivingRenderer)
-            {
+            if (renderer instanceof LivingRenderer) {
                 LivingRenderer rendererLiving = (LivingRenderer) renderer;
                 List<LayerRenderer> layers = (List<LayerRenderer>) ReflectionUtil.getValue(Ghost.LAYERS, rendererLiving);
                 ReflectionUtil.setValue(Ghost.LAYERS, rendererLiving, new ArrayList<>());
                 RenderType renderType = rendererLiving.getModel().renderType(rendererLiving.getTextureLocation(entity));
                 if (entity instanceof PlayerEntity && !renderType.toString().contains("cutout"))
                     rendererManager.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
-                else
-                {
+                else {
                     ClientPlayNetHandler connection = Minecraft.getInstance().getConnection();
-                    if (connection != null)
-                    {
+                    if (connection != null) {
                         NetworkPlayerInfo playerInfo = connection.getPlayerInfo(ClientEvents.getPlayer().getGameProfile().getId());
-                        if (playerInfo != null)
-                        {
+                        if (playerInfo != null) {
                             GameType gameType = playerInfo.getGameMode();
                             ReflectionUtil.setValue(GAME_MODE, playerInfo, GameType.SPECTATOR);
                             boolean isInvisible = entity.isInvisible();

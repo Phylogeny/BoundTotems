@@ -15,41 +15,35 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 @OnlyIn(Dist.CLIENT)
-public class BufferBuilderTransparent extends BufferBuilder
-{
+public class BufferBuilderTransparent extends BufferBuilder {
+    /**
+     * Differs from {@link net.minecraft.client.renderer.BufferBuilder} in this alpha value only
+     */
+    public static int alpha;
+
     private static final Constructor<IRenderTypeBuffer.Impl> RENDER_TYPE_BUFFER = ObfuscationReflectionHelper.findConstructor(IRenderTypeBuffer.Impl.class, BufferBuilder.class, Map.class);
     private static final Supplier<IRenderTypeBuffer.Impl> TYPE_BUFFER = Suppliers.memoize(BufferBuilderTransparent::createRenderTypeBuffer);
     public static final BufferBuilderTransparent INSTANCE = new BufferBuilderTransparent(2097152);
 
-    private static IRenderTypeBuffer.Impl createRenderTypeBuffer()
-    {
+    private static IRenderTypeBuffer.Impl createRenderTypeBuffer() {
         return ReflectionUtil.getNewInstance(RENDER_TYPE_BUFFER, BufferBuilderTransparent.INSTANCE, new HashMap<>());
     }
 
-    public static IRenderTypeBuffer.Impl getRenderTypeBuffer()
-    {
+    public static IRenderTypeBuffer.Impl getRenderTypeBuffer() {
         return TYPE_BUFFER.get();
     }
 
-    /**
-     *
-     */
-    public static int alpha;
-
-    public BufferBuilderTransparent(int bufferSize)
-    {
+    public BufferBuilderTransparent(int bufferSize) {
         super(bufferSize);
     }
 
     @Override
-    public IVertexBuilder color(int red, int green, int blue, int alpha)
-    {
+    public IVertexBuilder color(int red, int green, int blue, int alpha) {
         return super.color(red, green, blue, BufferBuilderTransparent.alpha);
     }
 
     @Override
-    public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float texU, float texV, int overlayUV, int lightmapUV, float normalX, float normalY, float normalZ)
-    {
+    public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float texU, float texV, int overlayUV, int lightmapUV, float normalX, float normalY, float normalZ) {
         super.vertex(x, y, z, red, green, blue, BufferBuilderTransparent.alpha / 255F, texU, texV, overlayUV, lightmapUV, normalX, normalY, normalZ);
     }
 }

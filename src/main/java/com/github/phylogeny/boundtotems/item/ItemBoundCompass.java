@@ -23,18 +23,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ItemBoundCompass extends CompassItem
-{
-    public ItemBoundCompass(Properties builder)
-    {
+public class ItemBoundCompass extends CompassItem {
+    public ItemBoundCompass(Properties builder) {
         super(builder);
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected)
-    {
-        if (entity instanceof ServerPlayerEntity)
-        {
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected) {
+        if (entity instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
             NBTUtil.setBoundEntity(stack, player);
             NBTUtil.setStackId(stack);
@@ -48,8 +44,7 @@ public class ItemBoundCompass extends CompassItem
                         boolean isHolder = boundEntity.getUUID().equals(player.getUUID());
                         positions.forEach(pos -> {
                             TileEntity te = world.getBlockEntity(pos);
-                            if (te instanceof TileEntityTotemShelf)
-                            {
+                            if (te instanceof TileEntityTotemShelf) {
                                 TileEntityTotemShelf shelf = (TileEntityTotemShelf) te;
                                 if (isHolder || player.getUUID().equals(shelf.getOwnerId()))
                                     cachedPositions.add(getCenter(world, pos));
@@ -67,8 +62,7 @@ public class ItemBoundCompass extends CompassItem
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
-    {
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
         NBTUtil.addBoundEntityInformation(stack, tooltip);
     }
 }

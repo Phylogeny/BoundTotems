@@ -25,10 +25,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-public class EntityUtil
-{
-    public static void spawnLightning(BlockState state, ServerWorld world, BlockPos pos)
-    {
+public class EntityUtil {
+    public static void spawnLightning(BlockState state, ServerWorld world, BlockPos pos) {
         LightningBoltEntity bolt = EntityType.LIGHTNING_BOLT.create(world);
         if (bolt == null)
             return;
@@ -39,13 +37,11 @@ public class EntityUtil
         world.addFreshEntity(bolt);
     }
 
-    public static double getReach(PlayerEntity player)
-    {
+    public static double getReach(PlayerEntity player) {
         return player.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue() + 1;
     }
 
-    public static BlockRayTraceResult rayTraceBlocks(PlayerEntity player)
-    {
+    public static BlockRayTraceResult rayTraceBlocks(PlayerEntity player) {
         Vector3d startPos = player.getEyePosition(1);
         return player.level.clip(new RayTraceContext(startPos,
                 startPos.add(player.getLookAngle().scale(getReach(player))),
@@ -53,27 +49,22 @@ public class EntityUtil
     }
 
     @Nullable
-    public static <T extends Entity> T rayTraceEntities(World world, PlayerEntity player, Class<? extends T> classEntity)
-    {
+    public static <T extends Entity> T rayTraceEntities(World world, PlayerEntity player, Class<? extends T> classEntity) {
         return rayTraceEntities(world, player, classEntity, box -> box);
     }
 
     @Nullable
-    public static <T extends Entity> T rayTraceEntities(World world, PlayerEntity player, Class<? extends T> classEntity, UnaryOperator<AxisAlignedBB> boxOperator)
-    {
+    public static <T extends Entity> T rayTraceEntities(World world, PlayerEntity player, Class<? extends T> classEntity, UnaryOperator<AxisAlignedBB> boxOperator) {
         double reach = getReach(player);
         Vector3d eyes = player.getEyePosition(1);
         Vector3d look = eyes.add(player.getLookAngle().scale(reach));
         double distShortest = Double.POSITIVE_INFINITY;
         Entity entityHit = null;
-        for (Entity entity : world.getEntitiesOfClass(classEntity, player.getBoundingBox().inflate(reach)))
-        {
+        for (Entity entity : world.getEntitiesOfClass(classEntity, player.getBoundingBox().inflate(reach))) {
             Optional<Vector3d> hit = boxOperator.apply(entity.getBoundingBox()).clip(eyes, look);
-            if (hit.isPresent())
-            {
+            if (hit.isPresent()) {
                 double dist = eyes.distanceToSqr(hit.get());
-                if (dist < distShortest)
-                {
+                if (dist < distShortest) {
                     entityHit = entity;
                     distShortest = dist;
                 }
@@ -82,29 +73,23 @@ public class EntityUtil
         return (T) entityHit;
     }
 
-    public static void teleportEntity(Entity entity, RegistryKey<World> dimension, Vector3d pos, float pitch, float yaw)
-    {
+    public static void teleportEntity(Entity entity, RegistryKey<World> dimension, Vector3d pos, float pitch, float yaw) {
         if (!(entity.getCommandSenderWorld() instanceof ServerWorld))
             return;
 
         ServerWorld worldCurrent = (ServerWorld) entity.getCommandSenderWorld();
-        if (dimension != worldCurrent.dimension())
-        {
+        if (dimension != worldCurrent.dimension()) {
             ServerWorld world = worldCurrent.getServer().getLevel(dimension);
-            if (world == null)
-            {
+            if (world == null) {
                 entity.sendMessage(new TranslationTextComponent(LangUtil.getKey("chat", "teleport.failed")), Util.NIL_UUID);
                 return;
             }
             if (entity instanceof ServerPlayerEntity)
                 ((ServerPlayerEntity) entity).teleportTo(world, pos.x, pos.y, pos.z, yaw, pitch);
-            else
-            {
-                entity.changeDimension(world, new ITeleporter()
-                {
+            else {
+                entity.changeDimension(world, new ITeleporter() {
                     @Override
-                    public Entity placeEntity(Entity entity, ServerWorld currentWorld, ServerWorld destWorld, float yaw, Function<Boolean, Entity> repositionEntity)
-                    {
+                    public Entity placeEntity(Entity entity, ServerWorld currentWorld, ServerWorld destWorld, float yaw, Function<Boolean, Entity> repositionEntity) {
                         Entity entityRepos = repositionEntity.apply(false);
                         entityRepos.absMoveTo(pos.x, pos.y, pos.z, yaw, pitch);
                         setPositionAndNullifyMotion(entityRepos, pos);
@@ -119,8 +104,7 @@ public class EntityUtil
         setPositionAndNullifyMotion(entity, pos);
     }
 
-    private static void setPositionAndNullifyMotion(Entity entity, Vector3d pos)
-    {
+    private static void setPositionAndNullifyMotion(Entity entity, Vector3d pos) {
         entity.teleportTo(pos.x, pos.y, pos.z);
         entity.setDeltaMovement(0, 0, 0);
         entity.fallDistance = 0;

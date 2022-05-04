@@ -21,14 +21,12 @@ import org.apache.logging.log4j.Logger;
 
 @Mod(BoundTotems.MOD_ID)
 @EventBusSubscriber(bus = Bus.MOD)
-public class BoundTotems
-{
+public class BoundTotems {
     public static final String MOD_ID = "boundtotems";
     public static final Logger LOGGER = LogManager.getLogger();
     public static final NonNullSupplier<RuntimeException> EMPTY_OPTIONAL_EXP = () -> new RuntimeException("Optional cannot be empty.");
 
-    public BoundTotems()
-    {
+    public BoundTotems() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         Config.register();
         BlocksMod.BLOCKS.register(bus);
@@ -39,20 +37,17 @@ public class BoundTotems
         bus.addListener(this::clientSetup);
     }
 
-    public static ResourceLocation getResourceLoc(String path)
-    {
+    public static ResourceLocation getResourceLoc(String path) {
         return new ResourceLocation(MOD_ID, path);
     }
 
     @SubscribeEvent
-    public static void setup(FMLCommonSetupEvent event)
-    {
+    public static void setup(FMLCommonSetupEvent event) {
         PacketNetwork.registerPackets();
         ShelfPositionsEvents.register();
     }
 
-    private void clientSetup(final FMLClientSetupEvent event)
-    {
+    private void clientSetup(final FMLClientSetupEvent event) {
         ClientRegistry.bindTileEntityRenderer(TileEntitiesMod.TOTEM_SHELF.get(), RendererTileEntityTotemShelf::new);
         ClientRegistry.bindTileEntityRenderer(TileEntitiesMod.TOTEM_SHELF_BINDING.get(), RendererTileEntityTotemShelf::new);
         ModPropertyGetters.register();

@@ -29,12 +29,10 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 @EventBusSubscriber(value = Dist.CLIENT)
-public class ClientEvents
-{
+public class ClientEvents {
     private static final Map<ResourceLocation, List<Ghost>> GHOSTS = new HashMap<>();
 
-    public static void addGhost(World world, Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
-    {
+    public static void addGhost(World world, Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity) {
         ResourceLocation dimension = NBTUtil.getDimensionKey(world);
         List<Ghost> ghosts = GHOSTS.get(dimension);
         if (ghosts == null)
@@ -45,8 +43,7 @@ public class ClientEvents
     }
 
     @SubscribeEvent
-    public static void updateGhosts(ClientTickEvent event)
-    {
+    public static void updateGhosts(ClientTickEvent event) {
         if (event.phase != Phase.START || getWorld() == null || Minecraft.getInstance().isPaused())
             return;
 
@@ -61,30 +58,25 @@ public class ClientEvents
     }
 
     @SubscribeEvent
-    public static void renderGhosts(RenderWorldLastEvent event)
-    {
+    public static void renderGhosts(RenderWorldLastEvent event) {
         List<Ghost> ghosts = GHOSTS.get(NBTUtil.getDimensionKey(getWorld()));
         if (ghosts != null)
             ghosts.forEach(ghost -> ghost.render(event));
     }
 
-    public static void playSoundAtEntity(Entity entity, SoundEvent sound, float pitch)
-    {
+    public static void playSoundAtEntity(Entity entity, SoundEvent sound, float pitch) {
         getWorld().playLocalSound(entity.getX(), entity.getY(), entity.getZ(), sound, entity.getSoundSource(), 1.0F, pitch, false);
     }
 
-    public static World getWorld()
-    {
+    public static World getWorld() {
         return Minecraft.getInstance().level;
     }
 
-    public static PlayerEntity getPlayer()
-    {
+    public static PlayerEntity getPlayer() {
         return Minecraft.getInstance().player;
     }
 
-    public static void addKnifeRemovalEffects(Vector3d knifePos, BlockState state)
-    {
+    public static void addKnifeRemovalEffects(Vector3d knifePos, BlockState state) {
         BlockPos pos = new BlockPos(knifePos);
         double x = knifePos.x - pos.getX();
         double y = knifePos.y - pos.getY();
@@ -113,14 +105,12 @@ public class ClientEvents
                     state, true).scale(0.5F));
     }
 
-    public static void addTotemShelfCarveEffects(BlockPos pos, int stageNext, Direction facing)
-    {
+    public static void addTotemShelfCarveEffects(BlockPos pos, int stageNext, Direction facing) {
         BlockState stateNew = BlocksMod.TOTEM_SHELF.get().defaultBlockState().setValue(BlockTotemShelf.STAGE, stageNext).setValue(BlockTotemShelf.FACING, facing);
         SoundType sound = BlocksMod.TOTEM_SHELF.get().getSoundType(stateNew);
         boolean placing = stageNext >= 7;
         ((ClientWorld) getWorld()).playLocalSound(pos, placing ? sound.getPlaceSound() : SoundEvents.AXE_STRIP, SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F, false);
-        if (!placing)
-        {
+        if (!placing) {
             VoxelShape shapeOld = (stageNext == 0 ? VoxelShapes.block() : BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew.setValue(BlockTotemShelf.STAGE, stageNext - 1)));
             VoxelShape shapeRemoved = VoxelShapes.joinUnoptimized(BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew), shapeOld, IBooleanFunction.NOT_SAME);
             addBlockDestroyEffects(pos, stateNew, shapeRemoved);
@@ -131,25 +121,20 @@ public class ClientEvents
      * Mimics {@link net.minecraft.client.particle.ParticleManager#destroy destroy}
      * in ParticleManager to add destruction particles for an arbitrary VoxelShape.
      */
-    private static void addBlockDestroyEffects(BlockPos pos, BlockState state, VoxelShape shape)
-    {
+    private static void addBlockDestroyEffects(BlockPos pos, BlockState state, VoxelShape shape) {
         if (state.isAir(getWorld(), pos))
             return;
 
-        shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) ->
-        {
+        shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
             double dx = Math.min(1.0, maxX - minX);
             double dy = Math.min(2.0, maxY - minY);
             double dz = Math.min(1.0, maxZ - minZ);
             int countX = Math.max(2, MathHelper.ceil(dx / 0.25));
             int countY = Math.max(2, MathHelper.ceil(dy / 0.25));
             int countZ = Math.max(2, MathHelper.ceil(dz / 0.25));
-            for (int l = 0; l < countX; ++l)
-            {
-                for (int i1 = 0; i1 < countY; ++i1)
-                {
-                    for (int j1 = 0; j1 < countZ; ++j1)
-                    {
+            for (int l = 0; l < countX; ++l) {
+                for (int i1 = 0; i1 < countY; ++i1) {
+                    for (int j1 = 0; j1 < countZ; ++j1) {
                         double x = (l + 0.5) / countX;
                         double y = (i1 + 0.5) / countY;
                         double z = (j1 + 0.5) / countZ;
@@ -163,15 +148,12 @@ public class ClientEvents
         });
     }
 
-    private static class DiggingParticleExtended extends DiggingParticle
-    {
+    private static class DiggingParticleExtended extends DiggingParticle {
         public DiggingParticleExtended(BlockPos pos, double xCoord, double yCoord, double zCoord,
-                double xSpeed, double ySpeed, double zSpeed, BlockState state, boolean exactVelocity)
-        {
+                                       double xSpeed, double ySpeed, double zSpeed, BlockState state, boolean exactVelocity) {
             super(Minecraft.getInstance().level, pos.getX() + xCoord, pos.getY() + yCoord, pos.getZ() + zCoord, xSpeed, ySpeed, zSpeed, state);
             init(pos);
-            if (exactVelocity)
-            {
+            if (exactVelocity) {
                 xd = xSpeed;
                 yd = ySpeed;
                 zd = zSpeed;

@@ -28,8 +28,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.Collections;
 import java.util.List;
 
-public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
-{
+public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe> {
     public static final String NAME = "in_world_crafting";
     public static final String LANG_KEY_PREFIX = LangUtil.getKey(ModIds.JEI_ID, NAME);
     private static final String LANG_KEY = LANG_KEY_PREFIX + ".category";
@@ -38,8 +37,7 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
     private final IDrawable background, backgroundSlot, arrow;
     private final IGuiHelper guiHelper;
 
-    public InWorldRecipeCategory(IGuiHelper guiHelper)
-    {
+    public InWorldRecipeCategory(IGuiHelper guiHelper) {
         this.guiHelper = guiHelper;
         backgroundSlot = guiHelper.createDrawable(new ResourceLocation("minecraft:textures/gui/container/furnace.png"), 111, 30, 26, 26);
         arrow = guiHelper.createDrawable(TEXTURE_GUI, 32, 0, 22, 15);
@@ -47,44 +45,37 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
     }
 
     @Override
-    public ResourceLocation getUid()
-    {
+    public ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public Class<? extends InWorldRecipe> getRecipeClass()
-    {
+    public Class<? extends InWorldRecipe> getRecipeClass() {
         return InWorldRecipe.class;
     }
 
     @Override
-    public String getTitle()
-    {
+    public String getTitle() {
         return I18n.get(LANG_KEY);
     }
 
     @Override
-    public IDrawable getBackground()
-    {
+    public IDrawable getBackground() {
         return background;
     }
 
     @Override
-    public IDrawable getIcon()
-    {
+    public IDrawable getIcon() {
         return guiHelper.createDrawableIngredient(new ItemStack(Blocks.GRASS_BLOCK));
     }
 
     @Override
-    public void setIngredients(InWorldRecipe recipe, IIngredients ingredients)
-    {
+    public void setIngredients(InWorldRecipe recipe, IIngredients ingredients) {
         recipe.setIngredients(ingredients);
     }
 
     @Override
-    public void setRecipe(IRecipeLayout recipeLayout, InWorldRecipe recipe, IIngredients ingredients)
-    {
+    public void setRecipe(IRecipeLayout recipeLayout, InWorldRecipe recipe, IIngredients ingredients) {
         IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
         guiItemStacks.init(0, false, 132, 10);
         guiItemStacks.init(1, true, 117, 75);
@@ -92,8 +83,7 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
     }
 
     @Override
-    public void draw(InWorldRecipe recipe, MatrixStack matrixStack, double mouseX, double mouseY)
-    {
+    public void draw(InWorldRecipe recipe, MatrixStack matrixStack, double mouseX, double mouseY) {
         drawTexture(recipe.getCurrentSlide(), matrixStack, 0, 0, 90, 125);
         int offsetX = 100;
         int offsetY = 6;
@@ -109,8 +99,7 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
         matrixStack.popPose();
     }
 
-    private void drawTexture(ResourceLocation texture, MatrixStack matrixStack, float x, float y, float width, float height)
-    {
+    private void drawTexture(ResourceLocation texture, MatrixStack matrixStack, float x, float y, float width, float height) {
         Minecraft.getInstance().getTextureManager().bind(texture);
         Matrix4f matrix = matrixStack.last().pose();
         BufferBuilder buffer = Tessellator.getInstance().getBuilder();
@@ -124,8 +113,7 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
     }
 
     @Override
-    public List<ITextComponent> getTooltipStrings(InWorldRecipe recipe, double mouseX, double mouseY)
-    {
+    public List<ITextComponent> getTooltipStrings(InWorldRecipe recipe, double mouseX, double mouseY) {
         return mouseX < 90 ? recipe.getTooltip() : Collections.emptyList();
     }
 }

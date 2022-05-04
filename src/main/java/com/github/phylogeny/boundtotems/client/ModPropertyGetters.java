@@ -38,8 +38,7 @@ public class ModPropertyGetters {
 
     private static class CompassRotationPropertyGetter extends CompassData implements IItemPropertyGetter {
         @Override
-        public float call(ItemStack stack, @Nullable ClientWorld world, @Nullable LivingEntity entity)
-        {
+        public float call(ItemStack stack, @Nullable ClientWorld world, @Nullable LivingEntity entity) {
             if (entity == null)
                 return 0F;
 
@@ -49,8 +48,7 @@ public class ModPropertyGetters {
             return MathHelper.positiveModulo(getAngleNeedle(stack, world, entity), 1F);
         }
 
-        private float getAngleNeedle(ItemStack stack, World world, LivingEntity entity)
-        {
+        private float getAngleNeedle(ItemStack stack, World world, LivingEntity entity) {
             UUID id = NBTUtil.getStackId(stack);
             if (id != null) {
                 CompassData compassData = SHELF_POSITIONS.get(id);
@@ -64,10 +62,8 @@ public class ModPropertyGetters {
             return wobble(this, world, Math.random());
         }
 
-        private float wobble(CompassData compassData, World world, double angle)
-        {
-            if (world.getGameTime() != compassData.lastUpdateTick)
-            {
+        private float wobble(CompassData compassData, World world, double angle) {
+            if (world.getGameTime() != compassData.lastUpdateTick) {
                 compassData.lastUpdateTick = world.getGameTime();
                 double delta = angle - compassData.rotation;
                 delta = MathHelper.positiveModulo(delta + 0.5, 1) - 0.5;
@@ -78,16 +74,13 @@ public class ModPropertyGetters {
             return (float) compassData.rotation;
         }
 
-        private double getAngleToNearestBoundShelf(Set<Vector3d> positions, LivingEntity entity)
-        {
+        private double getAngleToNearestBoundShelf(Set<Vector3d> positions, LivingEntity entity) {
             Vector3d posNearest = null;
             double distance;
             double distanceShortest = Double.POSITIVE_INFINITY;
-            for (Vector3d pos : positions)
-            {
+            for (Vector3d pos : positions) {
                 distance = entity.position().distanceToSqr(pos);
-                if (distance < distanceShortest)
-                {
+                if (distance < distanceShortest) {
                     distanceShortest = distance;
                     posNearest = pos;
                 }

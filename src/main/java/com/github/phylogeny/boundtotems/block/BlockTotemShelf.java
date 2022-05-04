@@ -56,21 +56,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class BlockTotemShelf extends BlockWaterLoggable
-{
+public class BlockTotemShelf extends BlockWaterLoggable {
     public static final String NAME = "totem_shelf";
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public static final EnumProperty<BindingState> BINDING_STATE = EnumProperty.create("binding_state", BindingState.class);
     public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 10);
     public static final BooleanProperty CHARRED = BooleanProperty.create("charred");
-    public static final VoxelShape SHAPE_KNIFE =  VoxelShapes.box(-0.15, -0.15, -0.15, 0.15, 0.15, 0.15);
+    public static final VoxelShape SHAPE_KNIFE = VoxelShapes.box(-0.15, -0.15, -0.15, 0.15, 0.15, 0.15);
     public static final EnumMap<Direction, EnumMap<DoubleBlockHalf, VoxelShape[]>> SHAPES_TOTEMS;
     public final ImmutableMap<BlockState, VoxelShape> SHAPES, SHAPES_RAYTRACE;
     private boolean preventPostPlacementCheck;
 
-    static
-    {
+    static {
         VoxelShape shape = Block.box(0, 0, 0, 5.5, 6, 3).move(0.125 + 0.03125, 0.375, 0.0625);
         SHAPES_TOTEMS = createEnumMap(Direction.class, dir -> createEnumMap(DoubleBlockHalf.class, half ->
                 IntStream.range(0, TileEntityTotemShelf.SIZE_INVENTORY).mapToObj(i ->
@@ -78,14 +76,12 @@ public class BlockTotemShelf extends BlockWaterLoggable
                                 dir.getCounterClockWise())).toArray(VoxelShape[]::new)));
     }
 
-    private static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Class<K> classEnum, Function<? super K, ? extends V> valueMapper)
-    {
+    private static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Class<K> classEnum, Function<? super K, ? extends V> valueMapper) {
         return Arrays.stream(classEnum.getEnumConstants()).collect(Collectors.toMap(enumValue -> enumValue, valueMapper,
                 (v1, v2) -> v2, () -> new EnumMap<>(classEnum)));
     }
 
-    public BlockTotemShelf(Properties properties)
-    {
+    public BlockTotemShelf(Properties properties) {
         super(properties);
         registerDefaultState(getBaseState()
                 .setValue(FACING, Direction.NORTH)
@@ -93,8 +89,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
                 .setValue(BINDING_STATE, BindingState.NOT_BOUND)
                 .setValue(STAGE, 10)
                 .setValue(CHARRED, false));
-        SHAPES = VoxelShapeUtil.generateShapes(getStateDefinition().getPossibleStates(), FACING, state ->
-        {
+        SHAPES = VoxelShapeUtil.generateShapes(getStateDefinition().getPossibleStates(), FACING, state -> {
             assert state != null;
             int stage = state.getValue(STAGE);
             boolean isUpper = state.getValue(HALF) == DoubleBlockHalf.UPPER;
@@ -123,59 +118,52 @@ public class BlockTotemShelf extends BlockWaterLoggable
         SHAPES_RAYTRACE = VoxelShapeUtil.getTransformedShapes(SHAPES, shape -> VoxelShapes.create(shape.bounds()));
     }
 
-    public enum BindingState implements IStringSerializable
-    {
+    public enum BindingState implements IStringSerializable {
         NOT_BOUND,
         HEATING,
         COOLING,
         BOUND;
 
-        public boolean isTransitioning() { return this == HEATING || this == COOLING; }
+        public boolean isTransitioning() {
+            return this == HEATING || this == COOLING;
+        }
 
-        public boolean hasNext()
-        {
+        public boolean hasNext() {
             return ordinal() < values().length - 1;
         }
 
         @Nullable
-        public BindingState getNext()
-        {
+        public BindingState getNext() {
             return hasNext() ? values()[ordinal() + 1] : null;
         }
 
         @Override
-        public String getSerializedName()
-        {
+        public String getSerializedName() {
             return name().toLowerCase();
         }
 
         @Override
-        public String toString()
-        {
+        public String toString() {
             return getSerializedName();
         }
     }
 
     @Nullable
-    public static PositionsTotemShelf getTotemShelfPositions(BlockState state, IWorld world, BlockPos pos)
-    {
+    public static PositionsTotemShelf getTotemShelfPositions(BlockState state, IWorld world, BlockPos pos) {
         return getTotemShelfPositions(state, world, pos, null);
     }
 
     @Nullable
-    public static PositionsTotemShelf getTotemShelfPositions(BlockState state, IWorld world, BlockPos pos, @Nullable PlayerEntity player)
-    {
+    public static PositionsTotemShelf getTotemShelfPositions(BlockState state, IWorld world, BlockPos pos, @Nullable PlayerEntity player) {
         boolean isTotemShelf = state.getBlock() instanceof BlockTotemShelf;
         if (!isTotemShelf && isInvalid(state))
             return null;
 
-        if (isTotemShelf)
-        {
+        if (isTotemShelf) {
             boolean isUpper = state.getValue(HALF) == DoubleBlockHalf.UPPER;
             BlockPos posLower = pos.below();
             BlockPos posOffset = posLower;
-            if (!isUpper)
-            {
+            if (!isUpper) {
                 posLower = pos;
                 pos = posOffset = pos.above();
             }
@@ -184,8 +172,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
         boolean isReversed = false;
         BlockPos posLower = pos.below();
         BlockState stateLower = world.getBlockState(posLower);
-        if (isInvalid(stateLower))
-        {
+        if (isInvalid(stateLower)) {
             isReversed = true;
             posLower = pos;
             pos = posLower.above();
@@ -196,19 +183,16 @@ public class BlockTotemShelf extends BlockWaterLoggable
         return new PositionsTotemShelf(state, pos, posLower, isReversed, player);
     }
 
-    private static boolean isInvalid(BlockState state)
-    {
+    private static boolean isInvalid(BlockState state) {
         return (state.getBlock() != Blocks.STRIPPED_OAK_LOG && !(state.getBlock() instanceof BlockStrippedOakLog)) || state.getValue(RotatedPillarBlock.AXIS) != Axis.Y;
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context)
-    {
+    public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context) {
         if (!(context.getEntity() instanceof LivingEntity))
             return SHAPES.get(state);
 
-        if (context.isHoldingItem(ItemsMod.PLANK.get()))
-        {
+        if (context.isHoldingItem(ItemsMod.PLANK.get())) {
             int stage = state.getValue(STAGE);
             if (stage > 5 && stage < 10)
                 return SHAPES.get(state.setValue(STAGE, stage + 1));
@@ -216,13 +200,11 @@ public class BlockTotemShelf extends BlockWaterLoggable
         TileEntity te = reader.getBlockEntity(pos);
         BlockPos posTE = pos;
         DoubleBlockHalf half = state.getValue(HALF);
-        if (half == DoubleBlockHalf.LOWER)
-        {
+        if (half == DoubleBlockHalf.LOWER) {
             posTE = pos.above();
             te = reader.getBlockEntity(posTE);
         }
-        if (te instanceof TileEntityTotemShelf)
-        {
+        if (te instanceof TileEntityTotemShelf) {
             Vector3d startPos = context.getEntity().getEyePosition(1);
             Vector3d endPos = startPos.add(context.getEntity().getLookAngle().scale(10));
             VoxelShape shape = SHAPES.get(state);
@@ -231,33 +213,24 @@ public class BlockTotemShelf extends BlockWaterLoggable
             double distanceShortest = Double.MAX_VALUE;
             TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
             Vector3d knifePos = totemShelf.getKnifePos();
-            if (knifePos != null)
-            {
+            if (knifePos != null) {
                 VoxelShape shapeKnife = SHAPE_KNIFE.move(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ());
                 BlockRayTraceResult targetKnife = shapeKnife.clip(startPos, endPos, pos);
-                if (targetKnife != null)
-                {
+                if (targetKnife != null) {
                     distanceShortest = targetKnife.getLocation().distanceToSqr(startPos);
                     shapeClosest = shapeKnife;
                 }
-            }
-            else if (context.getEntity() != null && (context.isHoldingItem(ItemsMod.BOUND_TOTEM.get()) || context.isHoldingItem(ItemsMod.BOUND_TOTEM_TELEPORTING.get()) || context.isHoldingItem(Items.AIR)))
-            {
+            } else if (context.getEntity() != null && (context.isHoldingItem(ItemsMod.BOUND_TOTEM.get()) || context.isHoldingItem(ItemsMod.BOUND_TOTEM_TELEPORTING.get()) || context.isHoldingItem(Items.AIR))) {
                 IItemHandler inventory = CapabilityUtil.getInventory(totemShelf);
-                if (inventory.isItemValid(0, ((LivingEntity) context.getEntity()).getMainHandItem()))
-                {
-                    for (int i = 0; i < inventory.getSlots(); i++)
-                    {
+                if (inventory.isItemValid(0, ((LivingEntity) context.getEntity()).getMainHandItem())) {
+                    for (int i = 0; i < inventory.getSlots(); i++) {
                         ItemStack stack = inventory.getStackInSlot(i);
-                        if (context.isHoldingItem(Items.AIR) != stack.isEmpty())
-                        {
+                        if (context.isHoldingItem(Items.AIR) != stack.isEmpty()) {
                             EnumMap<DoubleBlockHalf, VoxelShape[]> shapes = SHAPES_TOTEMS.get(state.getValue(FACING));
                             BlockRayTraceResult targetTotem = shapes.get(DoubleBlockHalf.UPPER)[i].clip(startPos, endPos, posTE);
-                            if (targetTotem != null)
-                            {
+                            if (targetTotem != null) {
                                 double distance = targetTotem.getLocation().distanceToSqr(startPos);
-                                if (distance < distanceShortest)
-                                {
+                                if (distance < distanceShortest) {
                                     distanceShortest = distance;
                                     shapeClosest = shapes.get(half)[i];
                                 }
@@ -273,27 +246,22 @@ public class BlockTotemShelf extends BlockWaterLoggable
     }
 
     @Override
-    public VoxelShape getInteractionShape(BlockState state, IBlockReader world, BlockPos pos)
-    {
+    public VoxelShape getInteractionShape(BlockState state, IBlockReader world, BlockPos pos) {
         return SHAPES_RAYTRACE.get(state);
     }
 
     @Override
-    public VoxelShape getCollisionShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context)
-    {
+    public VoxelShape getCollisionShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context) {
         return SHAPES.get(state);
     }
 
     @Override
-    public SoundType getSoundType(BlockState state, IWorldReader world, BlockPos pos, @Nullable Entity entity)
-    {
+    public SoundType getSoundType(BlockState state, IWorldReader world, BlockPos pos, @Nullable Entity entity) {
         return state.getValue(STAGE) < 6 ? BlockStrippedOakLog.getSoundType(state, entity) : super.getSoundType(state, world, pos, entity);
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction facing,
-            BlockState facingState, IWorld world, BlockPos currentPos, BlockPos facingPos)
-    {
+    public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, IWorld world, BlockPos currentPos, BlockPos facingPos) {
         super.updateShape(state, facing, facingState, world, currentPos, facingPos);
         if (preventPostPlacementCheck)
             return state;
@@ -310,8 +278,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
 
     @Override
     @Nullable
-    public BlockState getStateForPlacement(BlockItemUseContext context)
-    {
+    public BlockState getStateForPlacement(BlockItemUseContext context) {
         if (context.getClickedPos().getY() < 255 && context.getLevel().getBlockState(context.getClickedPos().above()).canBeReplaced(context))
             return Objects.requireNonNull(super.getStateForPlacement(context)).setValue(FACING, context.getHorizontalDirection().getOpposite());
 
@@ -319,31 +286,26 @@ public class BlockTotemShelf extends BlockWaterLoggable
     }
 
     @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack)
-    {
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         world.setBlockAndUpdate(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER));
     }
 
     @Override
-    public void playerDestroy(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack)
-    {
+    public void playerDestroy(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {
         super.playerDestroy(world, player, pos, Blocks.AIR.defaultBlockState(), te, stack);
     }
 
     @Override
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity player)
-    {
+    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         DoubleBlockHalf half = state.getValue(HALF);
         boolean isLower = half == DoubleBlockHalf.LOWER;
         BlockPos posOffset = isLower ? pos.above() : pos.below();
         BlockState stateOffset = world.getBlockState(posOffset);
-        if (stateOffset.getBlock() == this && stateOffset.getValue(HALF) != half)
-        {
+        if (stateOffset.getBlock() == this && stateOffset.getValue(HALF) != half) {
             preventPostPlacementCheck = true;
             world.setBlock(posOffset, Blocks.AIR.defaultBlockState(), Constants.BlockFlags.DEFAULT | Constants.BlockFlags.NO_NEIGHBOR_DROPS);
             preventPostPlacementCheck = false;
-            if (!world.isClientSide && !player.isCreative() && state.getValue(STAGE) == 10 && state.getValue(BINDING_STATE) != BindingState.BOUND)
-            {
+            if (!world.isClientSide && !player.isCreative() && state.getValue(STAGE) == 10 && state.getValue(BINDING_STATE) != BindingState.BOUND) {
                 ItemStack stackHeld = player.getMainHandItem();
                 dropResources(state, world, pos, null, player, stackHeld);
                 dropResources(stateOffset, world, posOffset, null, player, stackHeld);
@@ -355,24 +317,20 @@ public class BlockTotemShelf extends BlockWaterLoggable
         super.playerWillDestroy(world, pos, state, player);
     }
 
-    public static void addShelfBreakingEffects(World world, BlockPos pos, BlockState state, boolean charShelf)
-    {
+    public static void addShelfBreakingEffects(World world, BlockPos pos, BlockState state, boolean charShelf) {
         world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundsMod.EXHALE.get(), SoundCategory.MASTER, 1F, 2.4F - world.random.nextFloat());
         PacketNetwork.sendToAllAround(new PacketShelfSmokeParticles(world, pos, state, charShelf), world, pos);
     }
 
-    public static void spawnShelfSmokeParticles(World world, AxisAlignedBB box)
-    {
+    public static void spawnShelfSmokeParticles(World world, AxisAlignedBB box) {
         spawnShelfSmokeParticles(world, VoxelShapes.empty(), box, false);
     }
 
-    public static void spawnShelfSmokeParticles(World world, VoxelShape shape)
-    {
+    public static void spawnShelfSmokeParticles(World world, VoxelShape shape) {
         spawnShelfSmokeParticles(world, shape, shape.bounds().inflate(0.1), true);
     }
 
-    private static void spawnShelfSmokeParticles(World world, VoxelShape shape, AxisAlignedBB box, boolean addFlames)
-    {
+    private static void spawnShelfSmokeParticles(World world, VoxelShape shape, AxisAlignedBB box, boolean addFlames) {
         ReuseableStream<AxisAlignedBB> shapeStream = new ReuseableStream<>(shape.toAabbs().stream());
         for (int i = 0; i < (addFlames ? 36 : 24); i++) {
             AtomicReference<Vector3d> vec = new AtomicReference<>();
@@ -388,28 +346,24 @@ public class BlockTotemShelf extends BlockWaterLoggable
     }
 
     @Override
-    protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
-    {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING, HALF, BINDING_STATE, STAGE, CHARRED);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state)
-    {
+    public boolean hasTileEntity(BlockState state) {
         return state.getValue(STAGE) == 10;
     }
 
     @Override
     @Nullable
-    public TileEntity createTileEntity(BlockState state, IBlockReader world)
-    {
+    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
         return state.getValue(HALF) == DoubleBlockHalf.UPPER && state.getValue(BINDING_STATE).isTransitioning() ? new TileEntityTotemShelfBinding() : new TileEntityTotemShelf();
     }
 
     @Override
-    public void tick(BlockState state, ServerWorld world, BlockPos pos, Random random)
-    {
+    public void tick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         BindingState bindingState = state.getValue(BINDING_STATE);
         if (bindingState == BindingState.HEATING)
             EntityUtil.spawnLightning(state, world, pos);
@@ -424,19 +378,14 @@ public class BlockTotemShelf extends BlockWaterLoggable
     }
 
     @Override
-    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result)
-    {
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         ItemStack stack = player.getItemInHand(hand);
-        if (stack.getItem() == ItemsMod.PLANK.get())
-        {
+        if (stack.getItem() == ItemsMod.PLANK.get()) {
             int stage = state.getValue(STAGE);
-            if (stage > 5 && stage < 10)
-            {
+            if (stage > 5 && stage < 10) {
                 PositionsTotemShelf positions = getTotemShelfPositions(state, world, pos);
-                if (positions != null)
-                {
-                    if (world instanceof ServerWorld)
-                    {
+                if (positions != null) {
+                    if (world instanceof ServerWorld) {
                         positions.advanceStage((ServerWorld) world);
                         stack.shrink(1);
                     }
@@ -445,8 +394,7 @@ public class BlockTotemShelf extends BlockWaterLoggable
             }
             return ActionResultType.PASS;
         }
-        if (state.getValue(HALF) == DoubleBlockHalf.LOWER)
-        {
+        if (state.getValue(HALF) == DoubleBlockHalf.LOWER) {
             pos = pos.above();
             state = world.getBlockState(pos);
         }
@@ -460,16 +408,12 @@ public class BlockTotemShelf extends BlockWaterLoggable
 
         IItemHandler inventory = CapabilityUtil.getInventory(totemShelf);
         ItemStack stackMain = player.getMainHandItem();
-        if (inventory.isItemValid(0, stackMain))
-        {
+        if (inventory.isItemValid(0, stackMain)) {
             VoxelShape[] totemShapes = SHAPES_TOTEMS.get(state.getValue(FACING)).get(DoubleBlockHalf.UPPER);
-            for (int i = 0; i < inventory.getSlots(); i++)
-            {
+            for (int i = 0; i < inventory.getSlots(); i++) {
                 if (TileEntityTotemShelf.getHitShape(totemShapes[i], pos, result) != null
-                        && stackMain.isEmpty() != transferTotem(inventory, stackMain, i, true).isEmpty())
-                {
-                    if (!world.isClientSide)
-                    {
+                        && stackMain.isEmpty() != transferTotem(inventory, stackMain, i, true).isEmpty()) {
+                    if (!world.isClientSide) {
                         player.setItemInHand(Hand.MAIN_HAND, transferTotem(inventory, stackMain, i, false));
                         float modifier = stackMain.isEmpty() ? 2 : 1;
                         world.playSound(null, pos, SoundEvents.BOOK_PUT, SoundCategory.MASTER, 2, 1 * modifier);
@@ -481,36 +425,31 @@ public class BlockTotemShelf extends BlockWaterLoggable
         return ActionResultType.PASS;
     }
 
-    public ItemStack transferTotem(IItemHandler inventory, ItemStack stack, int index, boolean simulate)
-    {
+    public ItemStack transferTotem(IItemHandler inventory, ItemStack stack, int index, boolean simulate) {
         ItemStack stackShelf = inventory.extractItem(index, 1, simulate);
         inventory.insertItem(index, stack, simulate);
         return stackShelf;
     }
 
     @Override
-    public boolean canSurvive(BlockState state, IWorldReader world, BlockPos pos)
-    {
+    public boolean canSurvive(BlockState state, IWorldReader world, BlockPos pos) {
         return state.getValue(HALF) == DoubleBlockHalf.LOWER || world.getBlockState(pos.below()).getBlock() == this;
     }
 
     @Override
-    public void onRemove(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving)
-    {
+    public void onRemove(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() == newState.getBlock())
             return;
 
         TileEntity te = world.getBlockEntity(pos);
-        if (te instanceof TileEntityTotemShelf)
-        {
+        if (te instanceof TileEntityTotemShelf) {
             TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
             ItemStack knife = totemShelf.getKnife();
             if (!knife.isEmpty())
                 InventoryHelper.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), knife);
 
             IItemHandler inventory = CapabilityUtil.getInventory((TileEntityTotemShelf) te);
-            for (int i = 0; i < inventory.getSlots(); i++)
-            {
+            for (int i = 0; i < inventory.getSlots(); i++) {
                 ItemStack stack = inventory.getStackInSlot(i);
                 if (!stack.isEmpty())
                     InventoryHelper.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
@@ -520,20 +459,17 @@ public class BlockTotemShelf extends BlockWaterLoggable
     }
 
     @Override
-    public BlockState rotate(BlockState state, Rotation rotation)
-    {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    public BlockState mirror(BlockState state, Mirror mirror)
-    {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return mirror == Mirror.NONE ? state : state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
-    public float getDestroyProgress(BlockState state, PlayerEntity player, IBlockReader world, BlockPos pos)
-    {
+    public float getDestroyProgress(BlockState state, PlayerEntity player, IBlockReader world, BlockPos pos) {
         float hardness = state.getDestroySpeed(world, pos);
         if (hardness == -1 || player.getMainHandItem().getItem() instanceof ItemCarvingKnife && state.hasProperty(STAGE) && state.getValue(STAGE) > 5)
             return 0;
@@ -543,14 +479,12 @@ public class BlockTotemShelf extends BlockWaterLoggable
     }
 
     @Override
-    public boolean hasAnalogOutputSignal(BlockState state)
-    {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, World world, BlockPos pos)
-    {
+    public int getAnalogOutputSignal(BlockState state, World world, BlockPos pos) {
         TileEntity te = world.getBlockEntity(state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos.above() : pos);
         if (!(te instanceof TileEntityTotemShelf))
             return 0;

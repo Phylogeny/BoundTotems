@@ -13,15 +13,13 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-public class TileEntitiesMod
-{
+public class TileEntitiesMod {
     public static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, BoundTotems.MOD_ID);
 
     public static final RegistryObject<TileEntityType<TileEntityTotemShelf>> TOTEM_SHELF = register("totem_shelf_tile", TileEntityTotemShelf::new, BlocksMod.TOTEM_SHELF);
     public static final RegistryObject<TileEntityType<TileEntityTotemShelfBinding>> TOTEM_SHELF_BINDING = register("totem_shelf_binding_tile", TileEntityTotemShelfBinding::new, BlocksMod.TOTEM_SHELF);
 
-    private static <E extends TileEntity, B extends Block> RegistryObject<TileEntityType<E>> register(String name, Supplier<E> factory, RegistryObject<B>... blocks)
-    {
+    private static <E extends TileEntity, B extends Block> RegistryObject<TileEntityType<E>> register(String name, Supplier<E> factory, RegistryObject<B>... blocks) {
         return TILE_ENTITIES.register(name, () -> TileEntityType.Builder.of(factory, Arrays.stream(blocks).map(RegistryObject::get).toArray(Block[]::new)).build(null));
     }
 }

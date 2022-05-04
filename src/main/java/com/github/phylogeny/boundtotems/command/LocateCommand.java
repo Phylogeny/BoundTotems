@@ -28,30 +28,25 @@ import net.minecraft.util.text.event.HoverEvent;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class LocateCommand
-{
+public class LocateCommand {
     private static final String NAME = "bound_totem_shelf";
 
-    public static void register(CommandDispatcher<CommandSource> dispatcher)
-    {
+    public static void register(CommandDispatcher<CommandSource> dispatcher) {
         dispatcher.register(Commands.literal("locate").requires(source -> source.hasPermission(2))
-            .then(Commands.literal(NAME).then(Commands.argument("target", EntityArgument.entities())
+                .then(Commands.literal(NAME).then(Commands.argument("target", EntityArgument.entities())
                         .executes(command -> locateStructure(command, EntityArgument.getEntity(command, "target"))))));
     }
 
-    private static int locateStructure(CommandContext<CommandSource> command, Entity entity) throws CommandSyntaxException
-    {
+    private static int locateStructure(CommandContext<CommandSource> command, Entity entity) throws CommandSyntaxException {
         BlockPos pos = new BlockPos(command.getSource().getPosition());
         if (!(entity instanceof LivingEntity))
             throwException("args.entity");
 
         AtomicReference<TileEntityTotemShelf> nearestShelf = new AtomicReference<>();
         AtomicDouble distanceShortest = new AtomicDouble(Double.POSITIVE_INFINITY);
-        TileEntityTotemShelf.visitTotemShelves((LivingEntity) entity, (world, shelf) ->
-        {
+        TileEntityTotemShelf.visitTotemShelves((LivingEntity) entity, (world, shelf) -> {
             double distance = shelf.getBlockPos().distSqr(pos);
-            if (distance < distanceShortest.get())
-            {
+            if (distance < distanceShortest.get()) {
                 distanceShortest.set(distance);
                 nearestShelf.set(shelf);
             }
@@ -75,8 +70,7 @@ public class LocateCommand
         return distance;
     }
 
-    private static void throwException(String name, Object... args) throws CommandSyntaxException
-    {
+    private static void throwException(String name, Object... args) throws CommandSyntaxException {
         throw new SimpleCommandExceptionType(getLocalizedText(name, args)).create();
     }
 
@@ -84,10 +78,9 @@ public class LocateCommand
         return LangUtil.getLocalizedText("command", "shelf.locate." + name, args);
     }
 
-    private static float getDistance(int x1, int z1, int x2, int z2)
-    {
+    private static float getDistance(int x1, int z1, int x2, int z2) {
         int dx = x2 - x1;
         int dz = z2 - z1;
-        return MathHelper.sqrt((float)(dx * dx + dz * dz));
+        return MathHelper.sqrt((float) (dx * dx + dz * dz));
     }
 }

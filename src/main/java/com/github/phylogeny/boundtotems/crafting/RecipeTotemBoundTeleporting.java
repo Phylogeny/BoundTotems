@@ -13,38 +13,30 @@ import net.minecraft.world.World;
 
 import java.util.UUID;
 
-public class RecipeTotemBoundTeleporting extends ShapedRecipe
-{
+public class RecipeTotemBoundTeleporting extends ShapedRecipe {
     public RecipeTotemBoundTeleporting(ResourceLocation id, String group, int recipeWidth,
-            int recipeHeight, NonNullList<Ingredient> recipeItems, ItemStack recipeOutput)
-    {
+                                       int recipeHeight, NonNullList<Ingredient> recipeItems, ItemStack recipeOutput) {
         super(id, group, recipeWidth, recipeHeight, recipeItems, recipeOutput);
     }
 
     @Override
-    public ItemStack assemble(CraftingInventory inv)
-    {
+    public ItemStack assemble(CraftingInventory inv) {
         return RecipeTotemBound.transferBoundTotemNBT(inv, super.assemble(inv), totem -> 1);
     }
 
     @Override
-    public boolean matches(CraftingInventory inv, World world)
-    {
+    public boolean matches(CraftingInventory inv, World world) {
         boolean matches = super.matches(inv, world);
-        if (matches)
-        {
+        if (matches) {
             // Ensure that if the recipe contains multiple bound totems, they all have the same bound entity
             ItemStack stack;
             UUID entityId = null;
-            for (int i = 0; i < inv.getContainerSize(); i++)
-            {
+            for (int i = 0; i < inv.getContainerSize(); i++) {
                 stack = inv.getItem(i);
-                if (stack.getItem() instanceof ItemBoundTotem)
-                {
+                if (stack.getItem() instanceof ItemBoundTotem) {
                     if (entityId == null)
                         entityId = NBTUtil.getBoundEntityId(stack);
-                    else if (!entityId.equals(NBTUtil.getBoundEntityId(stack)))
-                    {
+                    else if (!entityId.equals(NBTUtil.getBoundEntityId(stack))) {
                         matches = false;
                         break;
                     }
@@ -54,11 +46,9 @@ public class RecipeTotemBoundTeleporting extends ShapedRecipe
         return matches;
     }
 
-    public static class Serializer extends ShapedRecipe.Serializer
-    {
+    public static class Serializer extends ShapedRecipe.Serializer {
         @Override
-        public ShapedRecipe fromJson(ResourceLocation recipeId, JsonObject json)
-        {
+        public ShapedRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
             ShapedRecipe recipe = super.fromJson(recipeId, json);
             return new RecipeTotemBoundTeleporting(recipe.getId(), recipe.getGroup(), recipe.getRecipeWidth(),
                     recipe.getRecipeHeight(), recipe.getIngredients(), recipe.getResultItem());

@@ -11,8 +11,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class ShelfPositionsProvider implements ICapabilitySerializable<INBT>
-{
+public class ShelfPositionsProvider implements ICapabilitySerializable<INBT> {
     @CapabilityInject(IShelfPositions.class)
     public static final Capability<IShelfPositions> CAPABILITY = null;
 
@@ -20,35 +19,29 @@ public class ShelfPositionsProvider implements ICapabilitySerializable<INBT>
 
     @Nonnull
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side)
-    {
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
         return cap == CAPABILITY ? instance.cast() : LazyOptional.empty();
     }
 
-    private IShelfPositions getCapability()
-    {
+    private IShelfPositions getCapability() {
         return instance.orElseThrow(BoundTotems.EMPTY_OPTIONAL_EXP);
     }
 
     @Override
-    public INBT serializeNBT()
-    {
+    public INBT serializeNBT() {
         return serializeNBT(getCapability());
     }
 
-    public static INBT serializeNBT(IShelfPositions positions)
-    {
+    public static INBT serializeNBT(IShelfPositions positions) {
         return CAPABILITY.getStorage().writeNBT(CAPABILITY, positions, null);
     }
 
     @Override
-    public void deserializeNBT(INBT nbt)
-    {
+    public void deserializeNBT(INBT nbt) {
         deserializeNBT(nbt, getCapability());
     }
 
-    public static void deserializeNBT(INBT nbt, IShelfPositions positions)
-    {
+    public static void deserializeNBT(INBT nbt, IShelfPositions positions) {
         CAPABILITY.getStorage().readNBT(CAPABILITY, positions, null, nbt);
     }
 }

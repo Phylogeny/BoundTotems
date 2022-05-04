@@ -18,8 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PacketNetwork
-{
+public class PacketNetwork {
     private static int packetId = 0;
     private static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder
             .named(BoundTotems.getResourceLoc("channel_main"))
@@ -28,8 +27,7 @@ public class PacketNetwork
             .networkProtocolVersion(() -> "1.0")
             .simpleChannel();
 
-    public static void registerPackets()
-    {
+    public static void registerPackets() {
         // Client side
         registerMessage(PacketTotemParticlesAndSound.class, PacketTotemParticlesAndSound::encode, PacketTotemParticlesAndSound::decode, PacketTotemParticlesAndSound.Handler::handle);
         registerMessage(PacketTotemAnimation.class, PacketTotemAnimation::encode, PacketTotemAnimation::decode, PacketTotemAnimation.Handler::handle);
@@ -42,54 +40,44 @@ public class PacketNetwork
         registerMessage(PacketAddOrRemoveKnife.class, PacketAddOrRemoveKnife::encode, PacketAddOrRemoveKnife::decode, PacketAddOrRemoveKnife.Handler::handle);
     }
 
-    public static <MSG> void sendToAllTrackingAndSelf(MSG msg, Entity entity)
-    {
+    public static <MSG> void sendToAllTrackingAndSelf(MSG msg, Entity entity) {
         INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity), msg);
     }
 
-    public static <MSG> void sendToAllTracking(MSG msg, Entity entity)
-    {
+    public static <MSG> void sendToAllTracking(MSG msg, Entity entity) {
         INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), msg);
     }
 
-    public static <MSG> void sendTo(MSG msg, ServerPlayerEntity player)
-    {
+    public static <MSG> void sendTo(MSG msg, ServerPlayerEntity player) {
         INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), msg);
     }
 
-    public static <MSG> void sendToAll(MSG msg)
-    {
+    public static <MSG> void sendToAll(MSG msg) {
         INSTANCE.send(PacketDistributor.ALL.noArg(), msg);
     }
 
-    public static <MSG> void sendToAllAround(MSG msg, World world, BlockPos pos)
-    {
+    public static <MSG> void sendToAllAround(MSG msg, World world, BlockPos pos) {
         sendToAllAround(msg, world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
     }
 
-    public static <MSG> void sendToAllAround(MSG msg, World world, Vector3d vec)
-    {
+    public static <MSG> void sendToAllAround(MSG msg, World world, Vector3d vec) {
         sendToAllAround(msg, world, vec.x, vec.y, vec.z);
     }
 
-    public static <MSG> void sendToAllAround(MSG msg, World world, double x, double y, double z)
-    {
+    public static <MSG> void sendToAllAround(MSG msg, World world, double x, double y, double z) {
         INSTANCE.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(x, y, z, 128, world.dimension())), msg);
     }
 
-    public static <MSG> void sendToDimension(MSG msg, RegistryKey<World> dimension)
-    {
+    public static <MSG> void sendToDimension(MSG msg, RegistryKey<World> dimension) {
         INSTANCE.send(PacketDistributor.DIMENSION.with(() -> dimension), msg);
     }
 
-    public static <MSG> void sendToServer(MSG msg)
-    {
+    public static <MSG> void sendToServer(MSG msg) {
         INSTANCE.send(PacketDistributor.SERVER.noArg(), msg);
     }
 
     private static <MSG> void registerMessage(Class<MSG> messageType, BiConsumer<MSG, PacketBuffer> encoder,
-            Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer)
-    {
+                                              Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {
         INSTANCE.registerMessage(packetId++, messageType, encoder, decoder, messageConsumer);
     }
 }

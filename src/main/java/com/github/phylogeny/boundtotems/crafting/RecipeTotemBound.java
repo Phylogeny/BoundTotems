@@ -15,23 +15,18 @@ import net.minecraft.util.ResourceLocation;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class RecipeTotemBound extends ShapelessRecipe
-{
-    public RecipeTotemBound(ResourceLocation id, String group, ItemStack recipeOutput, NonNullList<Ingredient> recipeItems)
-    {
+public class RecipeTotemBound extends ShapelessRecipe {
+    public RecipeTotemBound(ResourceLocation id, String group, ItemStack recipeOutput, NonNullList<Ingredient> recipeItems) {
         super(id, group, recipeOutput, recipeItems);
     }
 
     @Override
-    public ItemStack assemble(CraftingInventory inv)
-    {
+    public ItemStack assemble(CraftingInventory inv) {
         return transferBoundTotemNBT(inv, super.assemble(inv), totem -> totem instanceof ItemBoundTotemTeleporting ? 2 : 1);
     }
 
-    public static ItemStack transferBoundTotemNBT(CraftingInventory inv, ItemStack result, Function<Item, Integer> copySourceInstance)
-    {
-        if (!result.isEmpty())
-        {
+    public static ItemStack transferBoundTotemNBT(CraftingInventory inv, ItemStack result, Function<Item, Integer> copySourceInstance) {
+        if (!result.isEmpty()) {
             applyToBoundTotem(inv, copySourceInstance.apply(result.getItem()), (index, stack) -> result.setTag(stack.getTag() != null ? stack.getTag().copy() : null));
             if (result.getItem() instanceof ItemBoundTotemTeleporting)
                 applyToBoundTotem(inv, 1, (index, stack) -> NBTUtil.copyBoundLocation(stack, result));
@@ -40,33 +35,27 @@ public class RecipeTotemBound extends ShapelessRecipe
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingInventory inv)
-    {
+    public NonNullList<ItemStack> getRemainingItems(CraftingInventory inv) {
         NonNullList<ItemStack> remainder = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
         applyToBoundTotem(inv, 1, (index, stack) -> remainder.set(index, stack.copy()));
         inv.setChanged();
         return remainder;
     }
 
-    private static void applyToBoundTotem(CraftingInventory inv, int instance, BiConsumer<Integer, ItemStack> operation)
-    {
+    private static void applyToBoundTotem(CraftingInventory inv, int instance, BiConsumer<Integer, ItemStack> operation) {
         ItemStack stack;
-        for (int i = 0; i < inv.getContainerSize(); i++)
-        {
+        for (int i = 0; i < inv.getContainerSize(); i++) {
             stack = inv.getItem(i);
-            if (stack.getItem() instanceof ItemBoundTotem && --instance == 0)
-            {
+            if (stack.getItem() instanceof ItemBoundTotem && --instance == 0) {
                 operation.accept(i, stack);
                 return;
             }
         }
     }
 
-    public static class Serializer extends ShapelessRecipe.Serializer
-    {
+    public static class Serializer extends ShapelessRecipe.Serializer {
         @Override
-        public ShapelessRecipe fromJson(ResourceLocation recipeId, JsonObject json)
-        {
+        public ShapelessRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
             ShapelessRecipe recipe = super.fromJson(recipeId, json);
             return new RecipeTotemBound(recipe.getId(), recipe.getGroup(), recipe.getResultItem(), recipe.getIngredients());
         }

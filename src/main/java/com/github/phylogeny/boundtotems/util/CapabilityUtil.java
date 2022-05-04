@@ -8,15 +8,12 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
-public class CapabilityUtil
-{
-    public static IShelfPositions getShelfPositions(LivingEntity entity)
-    {
+public class CapabilityUtil {
+    public static IShelfPositions getShelfPositions(LivingEntity entity) {
         return entity.getCapability(ShelfPositionsProvider.CAPABILITY).orElseThrow(BoundTotems.EMPTY_OPTIONAL_EXP);
     }
 
-    public static IItemHandler getInventory(TileEntityTotemShelf tileEntity)
-    {
+    public static IItemHandler getInventory(TileEntityTotemShelf tileEntity) {
         return tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElseThrow(BoundTotems.EMPTY_OPTIONAL_EXP);
     }
 }

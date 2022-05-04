@@ -13,32 +13,26 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import java.util.List;
 
 @EventBusSubscriber(bus = Bus.MOD)
-public class Config
-{
-    public static class Client extends ConfigBase
-    {
-        Client()
-        {
+public class Config {
+    public static class Client extends ConfigBase {
+        Client() {
             super("Contains configs only accessed by the client", ModConfig.Type.CLIENT);
             build();
         }
     }
 
-    public static class Server extends ConfigBase
-    {
+    public static class Server extends ConfigBase {
         public final ConfigValue<InventorySearch> inventorySearch;
         public final ConfigValue<List<? extends String>> potionEffects;
         public final DoubleValue health, maxDistanceToShelf, boundCompassSyncInterval;
         public final BooleanValue preventCreativeModeDeath, clearPotionEffects, spawnParticles, playSound, playAnimation, setHealthToPercentageOfMax;
         public final IntValue maxBoundShelves;
 
-        public enum InventorySearch
-        {
+        public enum InventorySearch {
             WHOLE_INVENTORY, HOTBAR_ONLY, HELD_ONLY
         }
 
-        Server()
-        {
+        Server() {
             super("Contains configs only accessed by the server", ModConfig.Type.SERVER);
 
             inventorySearch = getBuilder("search")
@@ -52,33 +46,33 @@ public class Config
                     .define("Prevent All Death", true);
 
             clearPotionEffects = getBuilder("effects.clear")
-                     .comment(format("If set to true, all pre-existing potion effects will be cleared from the player %s."))
-                     .define("Clear Potion Effects", true);
+                    .comment(format("If set to true, all pre-existing potion effects will be cleared from the player %s."))
+                    .define("Clear Potion Effects", true);
 
             potionEffects = getBuilder("effects.apply")
-                     .comment(format("These potion effects will be applied to the player %s. Each string specifies "
-                             + "a potion effect in exactly the same way the /effect command does (e.i. the required "
-                             + "first argument specifies a potion by id or by modId:name, and the second/third "
-                             + "optional arguments are duration in seconds and amplification). These effects will "
-                             + "be applied whether or not pre-existing effects were previously cleared."))
-                     .defineList("Apply Potion Effects", ImmutableList.of("minecraft:regeneration 45 1", "minecraft:absorption 5 1"), obj -> obj instanceof String);
+                    .comment(format("These potion effects will be applied to the player %s. Each string specifies "
+                            + "a potion effect in exactly the same way the /effect command does (e.i. the required "
+                            + "first argument specifies a potion by id or by modId:name, and the second/third "
+                            + "optional arguments are duration in seconds and amplification). These effects will "
+                            + "be applied whether or not pre-existing effects were previously cleared."))
+                    .defineList("Apply Potion Effects", ImmutableList.of("minecraft:regeneration 45 1", "minecraft:absorption 5 1"), obj -> obj instanceof String);
 
             spawnParticles = getBuilder("result.particles")
-                     .comment(format("If set to true, totem particles will spawn for all nearby players %s."))
-                     .define("Spawn Particles", true);
+                    .comment(format("If set to true, totem particles will spawn for all nearby players %s."))
+                    .define("Spawn Particles", true);
 
             playSound = getBuilder("result.sound")
-                     .comment(format("If set to true, totem sound will play for all nearby players %s."))
-                     .define("Play Sound", true);
+                    .comment(format("If set to true, totem sound will play for all nearby players %s."))
+                    .define("Play Sound", true);
 
             playAnimation = getBuilder("result.animation")
-                     .comment(format("If set to true, the large floating totem animation will that takes up the screen will play upon %s."))
-                     .define("Play Animation", false);
+                    .comment(format("If set to true, the large floating totem animation will that takes up the screen will play upon %s."))
+                    .define("Play Animation", false);
 
             setHealthToPercentageOfMax = getBuilder("health.percentage")
-                     .comment(format("If set to true, 'New Health Value' will specify the percent of the player's max heath to set the new health "
-                             + "value to %s. If set to false, it will specify the number of hearts (1 = 1/2 heart) to set the new health value to."))
-                     .define("Set Health To Percentage Of Max", false);
+                    .comment(format("If set to true, 'New Health Value' will specify the percent of the player's max heath to set the new health "
+                            + "value to %s. If set to false, it will specify the number of hearts (1 = 1/2 heart) to set the new health value to."))
+                    .define("Set Health To Percentage Of Max", false);
 
             health = getBuilder("health.value")
                     .comment(format("Specifies the value (either percentage of max health, or absolute value (1 = 1/2 heart), depending "
@@ -106,39 +100,33 @@ public class Config
         }
     }
 
-    private static String format(String comment)
-    {
+    private static String format(String comment) {
         return String.format(comment, "upon being saved from death by a non-held bound totem of undying");
     }
 
-    private static class ConfigBase
-    {
+    private static class ConfigBase {
         private final Builder builder = new ForgeConfigSpec.Builder();
         private final ModConfig.Type type;
         private final String translationKeyBase;
         private ForgeConfigSpec spec;
 
-        public ConfigBase(String description, ModConfig.Type type)
-        {
+        public ConfigBase(String description, ModConfig.Type type) {
             String name = type.name().toLowerCase();
             builder.comment(description).push(name.substring(0, 1).toUpperCase() + name.substring(1));
             this.type = type;
             translationKeyBase = "config." + BoundTotems.MOD_ID + "." + name + ".";
         }
 
-        protected void build()
-        {
+        protected void build() {
             builder.pop();
             spec = builder.build();
         }
 
-        protected Builder getBuilder(String translationKey)
-        {
+        protected Builder getBuilder(String translationKey) {
             return builder.translation(translationKeyBase + translationKey);
         }
 
-        public void register()
-        {
+        public void register() {
             ModLoadingContext.get().registerConfig(type, spec);
         }
     }
@@ -146,19 +134,16 @@ public class Config
     public static final Server SERVER = new Server();
 
     @SubscribeEvent
-    public void onLoad(final ModConfig.Loading configEvent)
-    {
+    public void onLoad(final ModConfig.Loading configEvent) {
         BoundTotems.LOGGER.debug("Loaded forge config file {}", configEvent.getConfig().getFileName());
     }
 
     @SubscribeEvent
-    public void onFileChange(final ModConfig.Reloading configEvent)
-    {
+    public void onFileChange(final ModConfig.Reloading configEvent) {
         BoundTotems.LOGGER.fatal("Forge config just got changed on the file system!");
     }
 
-    public static void register()
-    {
+    public static void register() {
         SERVER.register();
         FMLJavaModLoadingContext.get().getModEventBus().register(Config.class);
     }

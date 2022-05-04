@@ -8,8 +8,7 @@ import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class RecipesMod
-{
+public class RecipesMod {
     public static final DeferredRegister<IRecipeSerializer<?>> RECIPES = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, BoundTotems.MOD_ID);
 
     public static final RegistryObject<RecipeTotemBound.Serializer> BOUND_TOTEM = RECIPES.register("bound_totem_copy", RecipeTotemBound.Serializer::new);

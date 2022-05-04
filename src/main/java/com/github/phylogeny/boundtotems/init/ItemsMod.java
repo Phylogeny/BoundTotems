@@ -17,8 +17,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ItemsMod
-{
+public class ItemsMod {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, BoundTotems.MOD_ID);
 
     public static final RegistryObject<ItemRitualDagger> RITUAL_DAGGER = registerItem(ItemRitualDagger.NAME, ItemRitualDagger::new);
@@ -29,18 +28,15 @@ public class ItemsMod
     public static final RegistryObject<BlockItem> TOTEM_SHELF_ITEM = registerBlockItem(BlockTotemShelf.NAME, BlocksMod.TOTEM_SHELF, BlockItem::new);
     public static final RegistryObject<ItemBoundCompass> BOUND_COMPASS = registerItem("bound_compass", ItemBoundCompass::new);
 
-    private static final Supplier<Map<Item, Item>> IN_WORLD_ITEM_CONVERSIONS = Suppliers.memoize(() ->
-    {
+    private static final Supplier<Map<Item, Item>> IN_WORLD_ITEM_CONVERSIONS = Suppliers.memoize(() -> {
         Map<Item, Item> map = new HashMap<>();
         map.put(Items.TOTEM_OF_UNDYING, BOUND_TOTEM.get());
         map.put(Items.COMPASS, BOUND_COMPASS.get());
         return map;
     });
 
-    public static ItemStack getBoundItem(ItemEntity entityTotem)
-    {
-        if (entityTotem != null)
-        {
+    public static ItemStack getBoundItem(ItemEntity entityTotem) {
+        if (entityTotem != null) {
             Item item = IN_WORLD_ITEM_CONVERSIONS.get().get(entityTotem.getItem().getItem());
             if (item != null)
                 return new ItemStack(item);
@@ -48,26 +44,21 @@ public class ItemsMod
         return ItemStack.EMPTY;
     }
 
-    private static <I extends Item> RegistryObject<I> registerItem(String name, Function<Item.Properties, I> function)
-    {
+    private static <I extends Item> RegistryObject<I> registerItem(String name, Function<Item.Properties, I> function) {
         return ITEMS.register(name, () -> function.apply(getProperties()));
     }
 
-    private static <I extends BlockItem, B extends Block> RegistryObject<I> registerBlockItem(String name, Supplier<B> block, BiFunction<Block, Item.Properties, I> function)
-    {
+    private static <I extends BlockItem, B extends Block> RegistryObject<I> registerBlockItem(String name, Supplier<B> block, BiFunction<Block, Item.Properties, I> function) {
         return ITEMS.register(name, () -> function.apply(block.get(), getProperties()));
     }
 
-    public static Item.Properties getProperties()
-    {
+    public static Item.Properties getProperties() {
         return new Item.Properties().tab(CREATIVE_TAB);
     }
 
-    private static final ItemGroup CREATIVE_TAB = new ItemGroup(BoundTotems.MOD_ID)
-    {
+    private static final ItemGroup CREATIVE_TAB = new ItemGroup(BoundTotems.MOD_ID) {
         @Override
-        public ItemStack makeIcon()
-        {
+        public ItemStack makeIcon() {
             return new ItemStack(BOUND_TOTEM.get());
         }
     };

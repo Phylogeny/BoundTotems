@@ -14,20 +14,17 @@ import net.minecraftforge.fml.network.NetworkEvent;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
-public class PacketShelfSmokeParticles
-{
+public class PacketShelfSmokeParticles {
     @Nullable
     private final AxisAlignedBB box;
     private final BlockPos pos;
 
-    public PacketShelfSmokeParticles(World world, BlockPos pos, BlockState state, boolean charShelf)
-    {
+    public PacketShelfSmokeParticles(World world, BlockPos pos, BlockState state, boolean charShelf) {
         box = charShelf ? null : getOffsetShape(world, pos, state).bounds().inflate(0.1);
         this.pos = pos;
     }
 
-    private PacketShelfSmokeParticles(@Nullable AxisAlignedBB box, BlockPos pos)
-    {
+    private PacketShelfSmokeParticles(@Nullable AxisAlignedBB box, BlockPos pos) {
         this.box = box;
         this.pos = pos;
     }
@@ -36,21 +33,17 @@ public class PacketShelfSmokeParticles
         return state.getCollisionShape(world, pos).move(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public static void encode(PacketShelfSmokeParticles msg, PacketBuffer buf)
-    {
+    public static void encode(PacketShelfSmokeParticles msg, PacketBuffer buf) {
         PacketBufferUtil.writeNullableObject(buf, msg.box, o -> PacketBufferUtil.writeAABB(buf, o));
         buf.writeBlockPos(msg.pos);
     }
 
-    public static PacketShelfSmokeParticles decode(PacketBuffer buf)
-    {
+    public static PacketShelfSmokeParticles decode(PacketBuffer buf) {
         return new PacketShelfSmokeParticles(PacketBufferUtil.readNullableObject(buf, PacketBufferUtil::readAABB), buf.readBlockPos());
     }
 
-    public static class Handler
-    {
-        public static void handle(PacketShelfSmokeParticles msg, Supplier<NetworkEvent.Context> ctx)
-        {
+    public static class Handler {
+        public static void handle(PacketShelfSmokeParticles msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
                 World world = ClientEvents.getWorld();
                 if (msg.box != null)
