@@ -11,11 +11,13 @@ import net.minecraft.util.Util;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -139,9 +141,11 @@ public class NBTUtil
         String name = getBoundEntityName(stack);
         if (name != null)
         {
-            LangUtil.addTooltip(tooltip, "entity.name", name);
+            LangUtil.addTooltipWithFormattedSuffix(tooltip, "entity.name", name, TextFormatting.GRAY);
             if (Screen.hasShiftDown())
-                LangUtil.addTooltip(tooltip, "entity.uuid", getBoundEntityId(stack));
+                LangUtil.addTooltipWithFormattedSuffix(tooltip, "entity.uuid", Objects.requireNonNull(getBoundEntityId(stack)).toString(), TextFormatting.GRAY);
+            else
+                LangUtil.addTooltip(tooltip, "entity.more_info");
         }
     }
 

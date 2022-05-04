@@ -2,6 +2,8 @@ package com.github.phylogeny.boundtotems.util;
 
 import com.github.phylogeny.boundtotems.BoundTotems;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -32,5 +34,10 @@ public class LangUtil
     public static void addTooltip(List<ITextComponent> tooltip, String name, Object... args)
     {
         tooltip.add(getTooltip(name, args));
+    }
+
+    public static void addTooltipWithFormattedSuffix(List<ITextComponent> tooltip, String name, String suffix, TextFormatting... formatting)
+    {
+        tooltip.add(getTooltip(name).append(new StringTextComponent(suffix).withStyle(formatting)));
     }
 }

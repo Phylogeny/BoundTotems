@@ -3,8 +3,9 @@
     "itemGroup.boundtotems": "Bound Totems",
 
     "_comment": "Tooltips",
-    "tooltip.boundtotems.entity.name": "§4Bound Entity:§7 %s",
-    "tooltip.boundtotems.entity.uuid": "§4UUID:§7 %s",
+    "tooltip.boundtotems.entity.name": "§4Bound Entity: ",
+    "tooltip.boundtotems.entity.uuid": "§4UUID: ",
+    "tooltip.boundtotems.entity.more_info": "§8Hold SHIFT for UUID",
     "tooltip.boundtotems.location": "§2Location:§7 %s [%s, %s, %s]",
 
     "_comment": "Items",
