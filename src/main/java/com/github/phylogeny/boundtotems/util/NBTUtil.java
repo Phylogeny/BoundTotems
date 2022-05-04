@@ -37,7 +37,8 @@ public class NBTUtil
     public static final String DIRECTION = "dir";
     public static final String KNIFE = "knife";
     public static final String GLOWING = "glowing";
-    public static final String UUID = "uuid";
+    public static final String ID = "uuid";
+    public static final String STACK_ID = "stack_id";
 
     public static boolean hasBoundEntity(ItemStack stack)
     {
@@ -51,20 +52,34 @@ public class NBTUtil
 
     public static UUID readUniqueId(CompoundNBT nbt)
     {
-        return nbt.hasUniqueId(UUID) ? nbt.getUniqueId(UUID) : Util.DUMMY_UUID;
+        return nbt.hasUniqueId(ID) ? nbt.getUniqueId(ID) : Util.DUMMY_UUID;
     }
 
     public static CompoundNBT writeUniqueId(UUID id)
     {
         CompoundNBT nbt = new CompoundNBT();
-        nbt.putUniqueId(UUID, id);
+        nbt.putUniqueId(ID, id);
         return nbt;
     }
 
+    public static void setStackId(ItemStack stack) {
+        if (!stack.getOrCreateTag().contains(STACK_ID))
+            stack.setTagInfo(STACK_ID, writeUniqueId(UUID.randomUUID()));
+    }
+
     @Nullable
-    public static UUID getBoundEntityId(ItemStack stack)
-    {
-        CompoundNBT nbt = stack.getChildTag(BOUND_ENTITY);
+    public static UUID getStackId(ItemStack stack) {
+        return getId(stack, STACK_ID);
+    }
+
+    @Nullable
+    public static UUID getBoundEntityId(ItemStack stack) {
+        return getId(stack, BOUND_ENTITY);
+    }
+
+    @Nullable
+    private static UUID getId(ItemStack stack, String key) {
+        CompoundNBT nbt = stack.getChildTag(key);
         return nbt == null ? null : readUniqueId(nbt);
     }
 

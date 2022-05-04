@@ -28,7 +28,7 @@ public class Config
     {
         public final ConfigValue<InventorySearch> inventorySearch;
         public final ConfigValue<List<? extends String>> potionEffects;
-        public final DoubleValue health, maxDistanceToShelf, boundCompasssSyncInterval;
+        public final DoubleValue health, maxDistanceToShelf, boundCompassSyncInterval;
         public final BooleanValue preventCreativeModeDeath, clearPotionEffects, spawnParticles, playSound, playAnimation, setHealthToPercentageOfMax;
         public final IntValue maxBoundShelves;
 
@@ -97,7 +97,7 @@ public class Config
                             "have no effect as long as they remain in it."))
                     .defineInRange("Max Bound Shelves", 10, 1, Integer.MAX_VALUE);
 
-            boundCompasssSyncInterval = getBuilder("compass.sync")
+            boundCompassSyncInterval = getBuilder("compass.sync")
                     .comment(format("Specifies the time in seconds between syncing of the client's bound shelf positions to the server while " +
                             "holding a bound compass."))
                     .defineInRange("Bound Compass Sync Interval", 5, 0.05, Double.MAX_VALUE);

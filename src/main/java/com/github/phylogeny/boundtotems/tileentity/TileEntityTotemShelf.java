@@ -54,7 +54,7 @@ public class TileEntityTotemShelf extends TileEntity
     private final LazyOptional<ItemStackHandler> inventory = LazyOptional.of(this::createInventory);
     protected ItemStack knife = ItemStack.EMPTY;
     private Vector3d knifePos, knifeDirection;
-    private UUID boundEntityID;
+    private UUID boundEntityId, ownerId;
 
     public TileEntityTotemShelf()
     {
@@ -72,9 +72,9 @@ public class TileEntityTotemShelf extends TileEntity
     }
 
     @Nullable
-    public UUID getBoundEntityID()
+    public UUID getOwnerId()
     {
-        return boundEntityID;
+        return ownerId;
     }
 
     @Nullable
@@ -96,7 +96,8 @@ public class TileEntityTotemShelf extends TileEntity
         NBTUtil.writeObjectToSubTag(nbt, NBTUtil.KNIFE, nbtSub -> knife.write(nbtSub));
         writeVec(nbt, knifePos, NBTUtil.POSITION);
         writeVec(nbt, knifeDirection, NBTUtil.DIRECTION);
-        NBTUtil.writeNullableObject(boundEntityID, key -> nbt.put("bound_entity_id", NBTUtil.writeUniqueId(key)));
+        NBTUtil.writeNullableObject(boundEntityId, key -> nbt.put("bound_entity_id", NBTUtil.writeUniqueId(key)));
+        NBTUtil.writeNullableObject(ownerId, key -> nbt.put("owner_id", NBTUtil.writeUniqueId(key)));
         nbt.put("items", getInventory().serializeNBT());
         return nbt;
     }
@@ -118,7 +119,8 @@ public class TileEntityTotemShelf extends TileEntity
         knife = NBTUtil.readObjectFromSubTag(nbt, NBTUtil.KNIFE, ItemStack::read);
         knifePos = readVec(nbt, NBTUtil.POSITION);
         knifeDirection = readVec(nbt, NBTUtil.DIRECTION);
-        boundEntityID = NBTUtil.readNullableObject(nbt, "bound_entity_id", key -> NBTUtil.readUniqueId(nbt.getCompound(key)));
+        boundEntityId = NBTUtil.readNullableObject(nbt, "bound_entity_id", key -> NBTUtil.readUniqueId(nbt.getCompound(key)));
+        ownerId = NBTUtil.readNullableObject(nbt, "owner_id", key -> NBTUtil.readUniqueId(nbt.getCompound(key)));
         if (nbt.contains("items"))
             getInventory().deserializeNBT((CompoundNBT) nbt.get("items"));
     }
@@ -166,8 +168,8 @@ public class TileEntityTotemShelf extends TileEntity
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack)
             {
-                return stack.isEmpty() || knifePos == null && boundEntityID != null && stack.getItem() instanceof ItemBoundTotem
-                        && boundEntityID.equals(NBTUtil.getBoundEntityId(stack)) && (world == null || !world.getBlockState(pos).get(BlockTotemShelf.CHARRED));
+                return stack.isEmpty() || knifePos == null && boundEntityId != null && stack.getItem() instanceof ItemBoundTotem
+                        && boundEntityId.equals(NBTUtil.getBoundEntityId(stack)) && (world == null || !world.getBlockState(pos).get(BlockTotemShelf.CHARRED));
             }
         };
     }
@@ -179,6 +181,7 @@ public class TileEntityTotemShelf extends TileEntity
             if (state.get(BlockTotemShelf.BINDING_STATE) == BindingState.NOT_BOUND && knife.isEmpty() && stack.getItem() instanceof ItemRitualDagger
                     && NBTUtil.hasBoundEntity(stack) && isInterior(result.getHitVec()))
             {
+                ownerId = player.getUniqueID();
                 if (!world.isRemote)
                 {
                     addKnife(result.getHitVec(), player.getLookVec(), stack);
@@ -250,7 +253,7 @@ public class TileEntityTotemShelf extends TileEntity
                 world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 80);
 
             if (bindingState == BindingState.COOLING)
-                ((TileEntityTotemShelf) te).bindKnifeAndShelf(state);
+                ((TileEntityTotemShelf) te).bindKnifeAndShelf();
         }
 
         if (world.isRemote)
@@ -260,7 +263,7 @@ public class TileEntityTotemShelf extends TileEntity
             world.playSound(null, pos, SoundsMod.BIND_SHELF.get(), SoundCategory.MASTER, 1, 1);
     }
 
-    private void bindKnifeAndShelf(BlockState state)
+    private void bindKnifeAndShelf()
     {
         if (!(world instanceof ServerWorld))
             return;
@@ -293,7 +296,7 @@ public class TileEntityTotemShelf extends TileEntity
             });
         }
         NBTUtil.bindKnife(knife.getOrCreateTag());
-        boundEntityID = entity.getUniqueID();
+        boundEntityId = entity.getUniqueID();
         ResourceLocation dimension = NBTUtil.getDimensionKey(world);
         Hashtable<ResourceLocation, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
         Set<BlockPos> positions = positionTable.get(dimension);
@@ -349,7 +352,7 @@ public class TileEntityTotemShelf extends TileEntity
                 if (te instanceof TileEntityTotemShelf)
                 {
                     TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
-                    if (entity.getUniqueID().equals(totemShelf.getBoundEntityID()) && !world.getBlockState(pos).get(BlockTotemShelf.CHARRED))
+                    if (entity.getUniqueID().equals(totemShelf.boundEntityId) && !world.getBlockState(pos).get(BlockTotemShelf.CHARRED))
                     {
                         ShelfVisitationResult result = action.apply(world, totemShelf);
                         foundShelf = !result.forceRemoval();
