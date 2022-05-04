@@ -33,10 +33,10 @@ public class EntityUtil
         if (bolt == null)
             return;
 
-        bolt.moveForced(Vector3d.copyCenteredWithVerticalOffset(pos, 1)
-                .subtract(Vector3d.copy(state.get(BlockTotemShelf.FACING).getDirectionVec()).scale(0.34375)));
-        bolt.setEffectOnly(true);
-        world.addEntity(bolt);
+        bolt.moveTo(Vector3d.upFromBottomCenterOf(pos, 1)
+                .subtract(Vector3d.atLowerCornerOf(state.getValue(BlockTotemShelf.FACING).getNormal()).scale(0.34375)));
+        bolt.setVisualOnly(true);
+        world.addFreshEntity(bolt);
     }
 
     public static double getReach(PlayerEntity player)
@@ -47,8 +47,8 @@ public class EntityUtil
     public static BlockRayTraceResult rayTraceBlocks(PlayerEntity player)
     {
         Vector3d startPos = player.getEyePosition(1);
-        return player.world.rayTraceBlocks(new RayTraceContext(startPos,
-                startPos.add(player.getLookVec().scale(getReach(player))),
+        return player.level.clip(new RayTraceContext(startPos,
+                startPos.add(player.getLookAngle().scale(getReach(player))),
                 RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, player));
     }
 
@@ -63,15 +63,15 @@ public class EntityUtil
     {
         double reach = getReach(player);
         Vector3d eyes = player.getEyePosition(1);
-        Vector3d look = eyes.add(player.getLookVec().scale(reach));
+        Vector3d look = eyes.add(player.getLookAngle().scale(reach));
         double distShortest = Double.POSITIVE_INFINITY;
         Entity entityHit = null;
-        for (Entity entity : world.getEntitiesWithinAABB(classEntity, player.getBoundingBox().grow(reach)))
+        for (Entity entity : world.getEntitiesOfClass(classEntity, player.getBoundingBox().inflate(reach)))
         {
-            Optional<Vector3d> hit = boxOperator.apply(entity.getBoundingBox()).rayTrace(eyes, look);
+            Optional<Vector3d> hit = boxOperator.apply(entity.getBoundingBox()).clip(eyes, look);
             if (hit.isPresent())
             {
-                double dist = eyes.squareDistanceTo(hit.get());
+                double dist = eyes.distanceToSqr(hit.get());
                 if (dist < distShortest)
                 {
                     entityHit = entity;
@@ -84,20 +84,20 @@ public class EntityUtil
 
     public static void teleportEntity(Entity entity, RegistryKey<World> dimension, Vector3d pos, float pitch, float yaw)
     {
-        if (!(entity.getEntityWorld() instanceof ServerWorld))
+        if (!(entity.getCommandSenderWorld() instanceof ServerWorld))
             return;
 
-        ServerWorld worldCurrent = (ServerWorld) entity.getEntityWorld();
-        if (dimension != worldCurrent.getDimensionKey())
+        ServerWorld worldCurrent = (ServerWorld) entity.getCommandSenderWorld();
+        if (dimension != worldCurrent.dimension())
         {
-            ServerWorld world = worldCurrent.getServer().getWorld(dimension);
+            ServerWorld world = worldCurrent.getServer().getLevel(dimension);
             if (world == null)
             {
-                entity.sendMessage(new TranslationTextComponent(LangUtil.getKey("chat", "teleport.failed")), Util.DUMMY_UUID);
+                entity.sendMessage(new TranslationTextComponent(LangUtil.getKey("chat", "teleport.failed")), Util.NIL_UUID);
                 return;
             }
             if (entity instanceof ServerPlayerEntity)
-                ((ServerPlayerEntity) entity).teleport(world, pos.x, pos.y, pos.z, yaw, pitch);
+                ((ServerPlayerEntity) entity).teleportTo(world, pos.x, pos.y, pos.z, yaw, pitch);
             else
             {
                 entity.changeDimension(world, new ITeleporter()
@@ -106,7 +106,7 @@ public class EntityUtil
                     public Entity placeEntity(Entity entity, ServerWorld currentWorld, ServerWorld destWorld, float yaw, Function<Boolean, Entity> repositionEntity)
                     {
                         Entity entityRepos = repositionEntity.apply(false);
-                        entityRepos.setPositionAndRotation(pos.x, pos.y, pos.z, yaw, pitch);
+                        entityRepos.absMoveTo(pos.x, pos.y, pos.z, yaw, pitch);
                         setPositionAndNullifyMotion(entityRepos, pos);
                         return entityRepos;
                     }
@@ -114,15 +114,15 @@ public class EntityUtil
                 return;
             }
         }
-        entity.rotationPitch = pitch;
-        entity.rotationYaw = yaw;
+        entity.xRot = pitch;
+        entity.yRot = yaw;
         setPositionAndNullifyMotion(entity, pos);
     }
 
     private static void setPositionAndNullifyMotion(Entity entity, Vector3d pos)
     {
-        entity.setPositionAndUpdate(pos.x, pos.y, pos.z);
-        entity.setMotion(0, 0, 0);
+        entity.teleportTo(pos.x, pos.y, pos.z);
+        entity.setDeltaMovement(0, 0, 0);
         entity.fallDistance = 0;
     }
 }

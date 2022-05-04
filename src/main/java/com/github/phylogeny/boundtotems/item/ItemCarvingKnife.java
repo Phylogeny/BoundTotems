@@ -13,11 +13,11 @@ public class ItemCarvingKnife extends AxeItem
 {
     public ItemCarvingKnife(Properties properties)
     {
-        super(ItemTier.STONE, 7F, -3.2F, properties.maxStackSize(1));
+        super(ItemTier.STONE, 7F, -3.2F, properties.stacksTo(1));
     }
 
     @Override
-    public boolean canPlayerBreakBlockWhileHolding(BlockState state, World world, BlockPos pos, PlayerEntity player)
+    public boolean canAttackBlock(BlockState state, World world, BlockPos pos, PlayerEntity player)
     {
         PositionsTotemShelf positions = BlockTotemShelf.getTotemShelfPositions(state, world, pos);
         return positions == null || positions.getNextStage() == null || positions.getNextStage() > 6;

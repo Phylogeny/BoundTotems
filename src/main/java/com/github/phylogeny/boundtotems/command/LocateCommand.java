@@ -34,14 +34,14 @@ public class LocateCommand
 
     public static void register(CommandDispatcher<CommandSource> dispatcher)
     {
-        dispatcher.register(Commands.literal("locate").requires(source -> source.hasPermissionLevel(2))
+        dispatcher.register(Commands.literal("locate").requires(source -> source.hasPermission(2))
             .then(Commands.literal(NAME).then(Commands.argument("target", EntityArgument.entities())
                         .executes(command -> locateStructure(command, EntityArgument.getEntity(command, "target"))))));
     }
 
     private static int locateStructure(CommandContext<CommandSource> command, Entity entity) throws CommandSyntaxException
     {
-        BlockPos pos = new BlockPos(command.getSource().getPos());
+        BlockPos pos = new BlockPos(command.getSource().getPosition());
         if (!(entity instanceof LivingEntity))
             throwException("args.entity");
 
@@ -49,7 +49,7 @@ public class LocateCommand
         AtomicDouble distanceShortest = new AtomicDouble(Double.POSITIVE_INFINITY);
         TileEntityTotemShelf.visitTotemShelves((LivingEntity) entity, (world, shelf) ->
         {
-            double distance = shelf.getPos().distanceSq(pos);
+            double distance = shelf.getBlockPos().distSqr(pos);
             if (distance < distanceShortest.get())
             {
                 distanceShortest.set(distance);
@@ -60,18 +60,18 @@ public class LocateCommand
         if (nearestShelf.get() == null)
             throwException("result.none", getLocalizedText("none." + (entity == command.getSource().getEntity() ? "self" : "other")));
 
-        BlockPos target = nearestShelf.get().getPos();
+        BlockPos target = nearestShelf.get().getBlockPos();
         int distance = MathHelper.floor(getDistance(pos.getX(), pos.getZ(), target.getX(), target.getZ()));
         BlockState state = nearestShelf.get().getBlockState();
-        Direction dir = state.get(BlockTotemShelf.FACING);
-        AxisAlignedBB box = state.getCollisionShape(entity.world, target).getBoundingBox();
-        double width = dir.getAxis() == Direction.Axis.X ? box.getXSize() : box.getZSize();
+        Direction dir = state.getValue(BlockTotemShelf.FACING);
+        AxisAlignedBB box = state.getCollisionShape(entity.level, target).bounds();
+        double width = dir.getAxis() == Direction.Axis.X ? box.getXsize() : box.getZsize();
         Vector3d exactTarget = new Vector3d(target.getX() + 0.5, target.getY() - 1, target.getZ() + 0.5)
-                .add(Vector3d.copy(dir.getDirectionVec()).scale(width - 0.5 + entity.getWidth() * 0.5));
-        ITextComponent message = TextComponentUtils.wrapWithSquareBrackets(new TranslationTextComponent("chat.coordinates", target.getX(), exactTarget.getY(), target.getZ())).modifyStyle(text ->
-                text.setFormatting(TextFormatting.GREEN).setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + exactTarget.getX() + " " + exactTarget.getY() + " " + exactTarget.getZ()))
-                        .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslationTextComponent("chat.coordinates.tooltip"))));
-        command.getSource().sendFeedback(new TranslationTextComponent("commands.locate.success", NAME, message, distance), false);
+                .add(Vector3d.atLowerCornerOf(dir.getNormal()).scale(width - 0.5 + entity.getBbWidth() * 0.5));
+        ITextComponent message = TextComponentUtils.wrapInSquareBrackets(new TranslationTextComponent("chat.coordinates", target.getX(), exactTarget.y(), target.getZ())).withStyle(text ->
+                text.withColor(TextFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + exactTarget.x() + " " + exactTarget.y() + " " + exactTarget.z()))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslationTextComponent("chat.coordinates.tooltip"))));
+        command.getSource().sendSuccess(new TranslationTextComponent("commands.locate.success", NAME, message, distance), false);
         return distance;
     }
 

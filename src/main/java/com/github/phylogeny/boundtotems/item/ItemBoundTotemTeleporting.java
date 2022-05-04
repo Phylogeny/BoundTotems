@@ -25,10 +25,10 @@ public class ItemBoundTotemTeleporting extends ItemBoundTotem
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World world, PlayerEntity player, Hand hand)
+    public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand)
     {
-        ItemStack stack = player.getHeldItem(hand);
-        if (!world.isRemote)
+        ItemStack stack = player.getItemInHand(hand);
+        if (!world.isClientSide)
         {
             LivingEntity entity = EntityUtil.rayTraceEntities(world, player, LivingEntity.class);
             NBTUtil.setBoundLocation(stack, entity != null ? entity : player);
@@ -40,14 +40,14 @@ public class ItemBoundTotemTeleporting extends ItemBoundTotem
     public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected)
     {
         super.inventoryTick(stack, world, entity, itemSlot, isSelected);
-        if (!world.isRemote && !NBTUtil.hasBoundLocation(stack.getTag()) && entity instanceof LivingEntity)
+        if (!world.isClientSide && !NBTUtil.hasBoundLocation(stack.getTag()) && entity instanceof LivingEntity)
             NBTUtil.setBoundLocation(stack, (LivingEntity) entity);
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
     {
-        super.addInformation(stack, world, tooltip, flag);
+        super.appendHoverText(stack, world, tooltip, flag);
         NBTUtil.addBoundLocationInformation(stack, tooltip, flag == TooltipFlags.ADVANCED);
     }
 }

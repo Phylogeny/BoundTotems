@@ -22,6 +22,6 @@ public class TileEntitiesMod
 
     private static <E extends TileEntity, B extends Block> RegistryObject<TileEntityType<E>> register(String name, Supplier<E> factory, RegistryObject<B>... blocks)
     {
-        return TILE_ENTITIES.register(name, () -> TileEntityType.Builder.create(factory, Arrays.stream(blocks).map(RegistryObject::get).toArray(Block[]::new)).build(null));
+        return TILE_ENTITIES.register(name, () -> TileEntityType.Builder.of(factory, Arrays.stream(blocks).map(RegistryObject::get).toArray(Block[]::new)).build(null));
     }
 }

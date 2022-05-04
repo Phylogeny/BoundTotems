@@ -27,12 +27,12 @@ public class PacketUpdateBoundCompass
     {
         buf.writeInt(msg.positions.size());
         msg.positions.forEach(pos -> PacketBufferUtil.writeVec(buf, pos));
-        buf.writeUniqueId(msg.id);
+        buf.writeUUID(msg.id);
     }
 
     public static PacketUpdateBoundCompass decode(PacketBuffer buf)
     {
-        return new PacketUpdateBoundCompass(IntStream.range(0, buf.readInt()).mapToObj(i -> PacketBufferUtil.readVec(buf)).collect(Collectors.toSet()), buf.readUniqueId());
+        return new PacketUpdateBoundCompass(IntStream.range(0, buf.readInt()).mapToObj(i -> PacketBufferUtil.readVec(buf)).collect(Collectors.toSet()), buf.readUUID());
     }
 
     public static class Handler

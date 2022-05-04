@@ -17,7 +17,6 @@ import com.github.phylogeny.boundtotems.util.ReflectionUtil;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -33,7 +32,6 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.event.TickEvent;
@@ -53,7 +51,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,7 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @EventBusSubscriber
 public class ServerEvents
 {
-    private static final Field DURABILITY_REMAINING_ON_BLOCK = ObfuscationReflectionHelper.findField(PlayerInteractionManager.class, "field_73094_o");
+    private static final Field LAST_SENT_STATE = ObfuscationReflectionHelper.findField(PlayerInteractionManager.class, "field_73094_o");
     private static final Hashtable<BlockPos, Boolean> BREAKING_SHELVES = new Hashtable<>();
     private static final Set<Runnable> END_OF_TICK_TASKS = ConcurrentHashMap.newKeySet();
 
@@ -79,7 +76,7 @@ public class ServerEvents
         else
             BREAKING_SHELVES.remove(pos);
 
-        event.getPlayer().world.sendBlockBreakProgress(-1, pos, -1);
+        event.getPlayer().level.destroyBlockProgress(-1, pos, -1);
     }
 
     @SubscribeEvent
@@ -100,8 +97,8 @@ public class ServerEvents
             return;
         }
         ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-        int progress = (int) ReflectionUtil.getValue(DURABILITY_REMAINING_ON_BLOCK, player.interactionManager);
-        player.world.sendBlockBreakProgress(-1, pos, progress - 1);
+        int progress = (int) ReflectionUtil.getValue(LAST_SENT_STATE, player.gameMode);
+        player.level.destroyBlockProgress(-1, pos, progress - 1);
     }
 
     @Nullable
@@ -110,13 +107,13 @@ public class ServerEvents
         if (!(player instanceof ServerPlayerEntity) || !(state.getBlock() instanceof BlockTotemShelf || state.getBlock() instanceof BlockStrippedOakLog))
             return null;
 
-        return BlockTotemShelf.getTotemShelfPositions(state, player.world, pos2);
+        return BlockTotemShelf.getTotemShelfPositions(state, player.level, pos2);
     }
 
     @SubscribeEvent(receiveCanceled = true)
     public static void sculptTotemShelf(BreakEvent event)
     {
-        ItemStack knife = event.getPlayer().getHeldItemMainhand();
+        ItemStack knife = event.getPlayer().getMainHandItem();
         if (!(knife.getItem() instanceof ItemCarvingKnife) || !(event.getWorld() instanceof ServerWorld))
             return;
 
@@ -130,7 +127,7 @@ public class ServerEvents
 
         event.setCanceled(true);
         positions.advanceStage((ServerWorld) event.getWorld());
-        knife.damageItem(1, event.getPlayer(), p -> p.sendBreakAnimation(Hand.MAIN_HAND));
+        knife.hurtAndBreak(1, event.getPlayer(), p -> p.broadcastBreakEvent(Hand.MAIN_HAND));
     }
 
     @SubscribeEvent
@@ -152,7 +149,7 @@ public class ServerEvents
     {
         LivingEntity entity = event.getEntityLiving();
         DamageSource source = event.getSource();
-        if (!Config.SERVER.preventCreativeModeDeath.get() && source.canHarmInCreative())
+        if (!Config.SERVER.preventCreativeModeDeath.get() && source.isBypassInvul())
             return;
 
         ItemStack totem = findBoundTotem(entity);
@@ -162,13 +159,13 @@ public class ServerEvents
         ServerPlayerEntity player = entity instanceof ServerPlayerEntity ? (ServerPlayerEntity) entity : null;
         if (player != null)
         {
-            player.addStat(Stats.ITEM_USED.get(totem.getItem()));
+            player.awardStat(Stats.ITEM_USED.get(totem.getItem()));
             CriteriaTriggers.USED_TOTEM.trigger(player, totem);
         }
         float heath = Config.SERVER.health.get().floatValue();
         entity.setHealth(Config.SERVER.setHealthToPercentageOfMax.get() ? heath * entity.getMaxHealth() : heath);
         if (Config.SERVER.clearPotionEffects.get())
-            entity.clearActivePotions();
+            entity.removeAllEffects();
 
         for (String potionEffect : Config.SERVER.potionEffects.get())
         {
@@ -178,7 +175,7 @@ public class ServerEvents
             }
             catch (IllegalPotionEffectArgumentException e)
             {
-                entity.sendMessage(new TranslationTextComponent(LangUtil.getKey("potion_effect", "error"), potionEffect, e.getMessage()), Util.DUMMY_UUID);
+                entity.sendMessage(new TranslationTextComponent(LangUtil.getKey("potion_effect", "error"), potionEffect, e.getMessage()), Util.NIL_UUID);
             }
         }
         boolean teleporting = totem.getItem() instanceof ItemBoundTotemTeleporting;
@@ -204,16 +201,16 @@ public class ServerEvents
         if (potion == null)
             throw new IllegalPotionEffectArgumentException("not_found", args[0]);
 
-        int duration = potion.isInstant() ? 1 : 600;
+        int duration = potion.isInstantenous() ? 1 : 600;
         if (args.length >= 2)
         {
             duration = parseInt(args[1], 0, 1000000);
-            if (!potion.isInstant())
+            if (!potion.isInstantenous())
                 duration *= 20;
         }
         int amplifier = args.length >= 3 ? parseInt(args[2], 0, 255) : 0;
         if (duration > 0)
-            entity.addPotionEffect(new EffectInstance(potion, duration, amplifier, false, !(args.length >= 4 && "true".equalsIgnoreCase(args[3]))));
+            entity.addEffect(new EffectInstance(potion, duration, amplifier, false, !(args.length >= 4 && "true".equalsIgnoreCase(args[3]))));
     }
 
     public static int parseInt(String input, int min, int max) throws IllegalPotionEffectArgumentException
@@ -258,7 +255,7 @@ public class ServerEvents
 
     /**
      * Searches the player's inventory slots -- as well as the slots of shulker boxes (using code from 
-     * {@link net.minecraft.block.ShulkerBoxBlock#addInformation(ItemStack stack, IBlockReader world, List tooltip, ITooltipFlag advanced) addInformation}
+     * {@link net.minecraft.block.ShulkerBoxBlock#appendHoverText appendHoverText}
      * in ShulkerBoxBlock) and other inventory-containing items -- for totems of undying.
      * 
      * @return if found, the totem removed from the players's inventory; if not, an empty stack
@@ -283,26 +280,26 @@ public class ServerEvents
         ItemStack totem = ItemStack.EMPTY;
         ItemStack stack;
         // Check inventory for totems in slots
-        for (int i = 0; i < player.inventory.getSizeInventory(); i++)
+        for (int i = 0; i < player.inventory.getContainerSize(); i++)
         {
-            if (hotbarOnly && !PlayerInventory.isHotbar(i))
+            if (hotbarOnly && !PlayerInventory.isHotbarSlot(i))
                 continue;
 
-            stack = player.inventory.getStackInSlot(i);
+            stack = player.inventory.getItem(i);
             if (isValidTotem(stack, player))
             {
                 totem = stack.copy();
-                player.inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+                player.inventory.setItem(i, ItemStack.EMPTY);
                 return totem;
             }
         }
         // Check inventory for totems in stacks with inventories
-        for (int i = 0; i < player.inventory.getSizeInventory(); i++)
+        for (int i = 0; i < player.inventory.getContainerSize(); i++)
         {
-            if (hotbarOnly && !PlayerInventory.isHotbar(i))
+            if (hotbarOnly && !PlayerInventory.isHotbarSlot(i))
                 continue;
 
-            totem = getTotemFromStack(player, player.inventory.getStackInSlot(i));
+            totem = getTotemFromStack(player, player.inventory.getItem(i));
             if (!totem.isEmpty())
                 return totem;
         }
@@ -314,7 +311,7 @@ public class ServerEvents
         // Check inventory for totems in slots
         for (Hand hand : Hand.values())
         {
-            ItemStack stack = entity.getHeldItem(hand);
+            ItemStack stack = entity.getItemInHand(hand);
             if (isValidTotem(stack, entity))
             {
                 ItemStack totem = stack.copy();
@@ -325,7 +322,7 @@ public class ServerEvents
         // Check inventory for totems in stacks with inventories
         for (Hand hand : Hand.values())
         {
-            ItemStack totem = getTotemFromStack(entity, entity.getHeldItem(hand));
+            ItemStack totem = getTotemFromStack(entity, entity.getItemInHand(hand));
             if (!totem.isEmpty())
                 return totem;
         }
@@ -340,7 +337,7 @@ public class ServerEvents
         // Check inventory for totems in shulker boxes
         if (stack.getItem() instanceof BlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof ShulkerBoxBlock)
         {
-            nbt = stack.getChildTag("BlockEntityTag");
+            nbt = stack.getTagElement("BlockEntityTag");
             if (nbt != null && nbt.contains("Items", NBT.TAG_LIST))
             {
                 stacks = NonNullList.withSize(27, ItemStack.EMPTY);
@@ -392,7 +389,7 @@ public class ServerEvents
     private static ItemStack getTotemFromShelf(LivingEntity entity)
     {
         AtomicReference<ItemStack> stackRef = new AtomicReference<>(ItemStack.EMPTY);
-        boolean performAudit = entity.world.rand.nextInt(20) == 0;
+        boolean performAudit = entity.level.random.nextInt(20) == 0;
         TileEntityTotemShelf.visitTotemShelves(entity, (world, shelf) ->
         {
             if (stackRef.get().isEmpty())
@@ -402,7 +399,7 @@ public class ServerEvents
                 for (int i = 0; i < inventory.getSlots(); i++)
                 {
                     stack = inventory.extractItem(i, 1, true);
-                    if (stack.getItem() instanceof ItemBoundTotem && entity.getUniqueID().equals(NBTUtil.getBoundEntityId(stack)))
+                    if (stack.getItem() instanceof ItemBoundTotem && entity.getUUID().equals(NBTUtil.getBoundEntityId(stack)))
                     {
                         stackRef.set(inventory.extractItem(i, 1, false));
                         if (!performAudit)

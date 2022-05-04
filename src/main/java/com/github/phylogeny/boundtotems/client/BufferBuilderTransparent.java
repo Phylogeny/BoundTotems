@@ -48,8 +48,8 @@ public class BufferBuilderTransparent extends BufferBuilder
     }
 
     @Override
-    public void addVertex(float x, float y, float z, float red, float green, float blue, float alpha, float texU, float texV, int overlayUV, int lightmapUV, float normalX, float normalY, float normalZ)
+    public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float texU, float texV, int overlayUV, int lightmapUV, float normalX, float normalY, float normalZ)
     {
-        super.addVertex(x, y, z, red, green, blue, BufferBuilderTransparent.alpha / 255F, texU, texV, overlayUV, lightmapUV, normalX, normalY, normalZ);
+        super.vertex(x, y, z, red, green, blue, BufferBuilderTransparent.alpha / 255F, texU, texV, overlayUV, lightmapUV, normalX, normalY, normalZ);
     }
 }

@@ -22,7 +22,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 public class CommonEvents
 {
     private static final ResourceLocation LOOT_TABLE = BoundTotems.getResourceLoc("chests/mod_tools");
-    private static final ResourceLocation LOOT_TABLE_MANSION = BoundTotems.getResourceLoc(LootTables.CHESTS_WOODLAND_MANSION.getPath());
+    private static final ResourceLocation LOOT_TABLE_MANSION = BoundTotems.getResourceLoc(LootTables.WOODLAND_MANSION.getPath());
 
     @SubscribeEvent
     public static void swapStrippedOakBlocks(PlayerInteractEvent.LeftClickBlock event)
@@ -36,7 +36,7 @@ public class CommonEvents
 
         PositionsTotemShelf positions = BlockTotemShelf.getTotemShelfPositions(state, event.getWorld(), event.getPos());
         if (positions != null)
-            event.getWorld().setBlockState(event.getPos(), BlocksMod.STRIPPED_OAK_LOG.get().getDefaultState(), 0);
+            event.getWorld().setBlock(event.getPos(), BlocksMod.STRIPPED_OAK_LOG.get().defaultBlockState(), 0);
     }
 
     @SubscribeEvent
@@ -46,7 +46,7 @@ public class CommonEvents
         if (path.startsWith("chests"))
         {
             ResourceLocation table = path.equals(LOOT_TABLE_MANSION.getPath()) ? LOOT_TABLE_MANSION : LOOT_TABLE;
-            event.getTable().addPool(LootPool.builder().name(path + "_" + BoundTotems.MOD_ID).addEntry(TableLootEntry.builder(table)).build());
+            event.getTable().addPool(LootPool.lootPool().name(path + "_" + BoundTotems.MOD_ID).add(TableLootEntry.lootTableReference(table)).build());
         }
     }
 

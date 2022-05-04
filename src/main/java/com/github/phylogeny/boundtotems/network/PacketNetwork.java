@@ -74,7 +74,7 @@ public class PacketNetwork
 
     public static <MSG> void sendToAllAround(MSG msg, World world, double x, double y, double z)
     {
-        INSTANCE.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(x, y, z, 128, world.getDimensionKey())), msg);
+        INSTANCE.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(x, y, z, 128, world.dimension())), msg);
     }
 
     public static <MSG> void sendToDimension(MSG msg, RegistryKey<World> dimension)

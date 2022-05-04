@@ -43,7 +43,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
     public void registerRecipes(IRecipeRegistration registration)
     {
         ItemStack stackBloodyKnife = new ItemStack(ItemsMod.RITUAL_DAGGER.get());
-        NBTUtil.setBoundEntity(stackBloodyKnife, MathHelper.getRandomUUID(), I18n.format(LangUtil.join(InWorldRecipeCategory.LANG_KEY_PREFIX, "entity_name")));
+        NBTUtil.setBoundEntity(stackBloodyKnife, MathHelper.createInsecureUUID(), I18n.get(LangUtil.join(InWorldRecipeCategory.LANG_KEY_PREFIX, "entity_name")));
         CompoundNBT nbtBloody = stackBloodyKnife.getTag();
         assert nbtBloody != null;
         CompoundNBT nbtBound = nbtBloody.copy();
@@ -71,7 +71,7 @@ public class JustEnoughItemsPlugin implements IModPlugin
         recipes.add(new InWorldRecipe("bind_compass", guiHelper, 2, stackBloodyKnife, stackBoundKnife).setAdditionalInputs(Items.COMPASS).setOutputs(stackCompassBound));
         registration.addRecipes(recipes, InWorldRecipeCategory.UID);
 
-        String allowedTotemLocations = I18n.format(LangUtil.join(ITEM_INFO_LANG_KEY, Config.SERVER.inventorySearch.get().name().toLowerCase()));
+        String allowedTotemLocations = I18n.get(LangUtil.join(ITEM_INFO_LANG_KEY, Config.SERVER.inventorySearch.get().name().toLowerCase()));
         addItemInfo(registration, ItemsMod.RITUAL_DAGGER);
         addItemInfo(registration, ItemsMod.BOUND_TOTEM, allowedTotemLocations);
         addItemInfo(registration, ItemsMod.BOUND_TOTEM_TELEPORTING);

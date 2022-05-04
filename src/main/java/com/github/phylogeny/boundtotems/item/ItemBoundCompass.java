@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public class ItemBoundCompass extends CompassItem
 {
@@ -41,18 +40,18 @@ public class ItemBoundCompass extends CompassItem
             NBTUtil.setStackId(stack);
             if (world.getGameTime() % (int) (Config.SERVER.boundCompassSyncInterval.get() * 20) == 0) {
                 Set<Vector3d> cachedPositions = new HashSet<>();
-                entity = NBTUtil.getBoundEntity(stack, player.getServerWorld());
+                entity = NBTUtil.getBoundEntity(stack, player.getLevel());
                 if (entity != null) {
                     LivingEntity boundEntity = (LivingEntity) entity;
                     Set<BlockPos> positions = CapabilityUtil.getShelfPositions(boundEntity).getPositions().get(NBTUtil.getDimensionKey(world));
                     if (positions != null && !positions.isEmpty()) {
-                        boolean isHolder = boundEntity.getUniqueID().equals(player.getUniqueID());
+                        boolean isHolder = boundEntity.getUUID().equals(player.getUUID());
                         positions.forEach(pos -> {
-                            TileEntity te = world.getTileEntity(pos);
+                            TileEntity te = world.getBlockEntity(pos);
                             if (te instanceof TileEntityTotemShelf)
                             {
                                 TileEntityTotemShelf shelf = (TileEntityTotemShelf) te;
-                                if (isHolder || player.getUniqueID().equals(shelf.getOwnerId()))
+                                if (isHolder || player.getUUID().equals(shelf.getOwnerId()))
                                     cachedPositions.add(getCenter(world, pos));
                             }
                         });
@@ -64,11 +63,11 @@ public class ItemBoundCompass extends CompassItem
     }
 
     private Vector3d getCenter(World world, BlockPos pos) {
-        return world.getBlockState(pos).getCollisionShape(world, pos).getBoundingBox().offset(pos).getCenter();
+        return world.getBlockState(pos).getCollisionShape(world, pos).bounds().move(pos).getCenter();
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
     {
         NBTUtil.addBoundEntityInformation(stack, tooltip);
     }

@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 public class BlockStrippedOakLog extends RotatedPillarBlock
 {
     public static final SoundType CARVE_WOOD = new SoundType(SoundType.WOOD.getVolume() * 2, SoundType.WOOD.getPitch() * 2, SoundType.WOOD.getBreakSound(),
-            SoundType.WOOD.getStepSound(), SoundType.WOOD.getPlaceSound(), SoundEvents.ITEM_AXE_STRIP, SoundType.WOOD.getFallSound());
+            SoundType.WOOD.getStepSound(), SoundType.WOOD.getPlaceSound(), SoundEvents.AXE_STRIP, SoundType.WOOD.getFallSound());
 
     public BlockStrippedOakLog(Properties properties)
     {
@@ -32,7 +32,7 @@ public class BlockStrippedOakLog extends RotatedPillarBlock
     public static SoundType getSoundType(BlockState state, Entity entity)
     {
         if (entity instanceof LivingEntity
-                && ((LivingEntity) entity).getItemStackFromSlot(EquipmentSlotType.MAINHAND).getItem() instanceof ItemCarvingKnife)
+                && ((LivingEntity) entity).getItemBySlot(EquipmentSlotType.MAINHAND).getItem() instanceof ItemCarvingKnife)
             return CARVE_WOOD;
 
         return state.getSoundType();

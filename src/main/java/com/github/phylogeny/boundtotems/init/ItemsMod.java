@@ -60,13 +60,13 @@ public class ItemsMod
 
     public static Item.Properties getProperties()
     {
-        return new Item.Properties().group(CREATIVE_TAB);
+        return new Item.Properties().tab(CREATIVE_TAB);
     }
 
     private static final ItemGroup CREATIVE_TAB = new ItemGroup(BoundTotems.MOD_ID)
     {
         @Override
-        public ItemStack createIcon()
+        public ItemStack makeIcon()
         {
             return new ItemStack(BOUND_TOTEM.get());
         }

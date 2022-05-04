@@ -22,9 +22,9 @@ public class RecipeTotemBoundTeleporting extends ShapedRecipe
     }
 
     @Override
-    public ItemStack getCraftingResult(CraftingInventory inv)
+    public ItemStack assemble(CraftingInventory inv)
     {
-        return RecipeTotemBound.transferBoundTotemNBT(inv, super.getCraftingResult(inv), totem -> 1);
+        return RecipeTotemBound.transferBoundTotemNBT(inv, super.assemble(inv), totem -> 1);
     }
 
     @Override
@@ -36,9 +36,9 @@ public class RecipeTotemBoundTeleporting extends ShapedRecipe
             // Ensure that if the recipe contains multiple bound totems, they all have the same bound entity
             ItemStack stack;
             UUID entityId = null;
-            for (int i = 0; i < inv.getSizeInventory(); i++)
+            for (int i = 0; i < inv.getContainerSize(); i++)
             {
-                stack = inv.getStackInSlot(i);
+                stack = inv.getItem(i);
                 if (stack.getItem() instanceof ItemBoundTotem)
                 {
                     if (entityId == null)
@@ -57,11 +57,11 @@ public class RecipeTotemBoundTeleporting extends ShapedRecipe
     public static class Serializer extends ShapedRecipe.Serializer
     {
         @Override
-        public ShapedRecipe read(ResourceLocation recipeId, JsonObject json)
+        public ShapedRecipe fromJson(ResourceLocation recipeId, JsonObject json)
         {
-            ShapedRecipe recipe = super.read(recipeId, json);
+            ShapedRecipe recipe = super.fromJson(recipeId, json);
             return new RecipeTotemBoundTeleporting(recipe.getId(), recipe.getGroup(), recipe.getRecipeWidth(),
-                    recipe.getRecipeHeight(), recipe.getIngredients(), recipe.getRecipeOutput());
+                    recipe.getRecipeHeight(), recipe.getIngredients(), recipe.getResultItem());
         }
     }
 }

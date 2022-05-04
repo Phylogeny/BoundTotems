@@ -90,10 +90,10 @@ public class TileEntityTotemShelf extends TileEntity
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT nbt)
+    public CompoundNBT save(CompoundNBT nbt)
     {
-        super.write(nbt);
-        NBTUtil.writeObjectToSubTag(nbt, NBTUtil.KNIFE, nbtSub -> knife.write(nbtSub));
+        super.save(nbt);
+        NBTUtil.writeObjectToSubTag(nbt, NBTUtil.KNIFE, nbtSub -> knife.save(nbtSub));
         writeVec(nbt, knifePos, NBTUtil.POSITION);
         writeVec(nbt, knifeDirection, NBTUtil.DIRECTION);
         NBTUtil.writeNullableObject(boundEntityId, key -> nbt.put("bound_entity_id", NBTUtil.writeUniqueId(key)));
@@ -113,10 +113,10 @@ public class TileEntityTotemShelf extends TileEntity
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT nbt)
+    public void load(BlockState state, CompoundNBT nbt)
     {
-        super.read(state, nbt);
-        knife = NBTUtil.readObjectFromSubTag(nbt, NBTUtil.KNIFE, ItemStack::read);
+        super.load(state, nbt);
+        knife = NBTUtil.readObjectFromSubTag(nbt, NBTUtil.KNIFE, ItemStack::of);
         knifePos = readVec(nbt, NBTUtil.POSITION);
         knifeDirection = readVec(nbt, NBTUtil.DIRECTION);
         boundEntityId = NBTUtil.readNullableObject(nbt, "bound_entity_id", key -> NBTUtil.readUniqueId(nbt.getCompound(key)));
@@ -156,20 +156,20 @@ public class TileEntityTotemShelf extends TileEntity
             protected void onContentsChanged(int slot)
             {
                 Block block = getBlockState().getBlock();
-                if (world != null)
+                if (level != null)
                 {
-                    world.addBlockEvent(pos, block, 1, 0);
-                    world.notifyNeighborsOfStateChange(pos, block);
-                    world.notifyBlockUpdate(pos, getBlockState(), getBlockState(), Constants.BlockFlags.DEFAULT);
+                    level.blockEvent(worldPosition, block, 1, 0);
+                    level.updateNeighborsAt(worldPosition, block);
+                    level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Constants.BlockFlags.DEFAULT);
                 }
-                markDirty();
+                setChanged();
             }
 
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack)
             {
                 return stack.isEmpty() || knifePos == null && boundEntityId != null && stack.getItem() instanceof ItemBoundTotem
-                        && boundEntityId.equals(NBTUtil.getBoundEntityId(stack)) && (world == null || !world.getBlockState(pos).get(BlockTotemShelf.CHARRED));
+                        && boundEntityId.equals(NBTUtil.getBoundEntityId(stack)) && (level == null || !level.getBlockState(worldPosition).getValue(BlockTotemShelf.CHARRED));
             }
         };
     }
@@ -178,28 +178,28 @@ public class TileEntityTotemShelf extends TileEntity
     {
         if (result != null)
         {
-            if (state.get(BlockTotemShelf.BINDING_STATE) == BindingState.NOT_BOUND && knife.isEmpty() && stack.getItem() instanceof ItemRitualDagger
-                    && NBTUtil.hasBoundEntity(stack) && isInterior(result.getHitVec()))
+            if (state.getValue(BlockTotemShelf.BINDING_STATE) == BindingState.NOT_BOUND && knife.isEmpty() && stack.getItem() instanceof ItemRitualDagger
+                    && NBTUtil.hasBoundEntity(stack) && isInterior(result.getLocation()))
             {
-                ownerId = player.getUniqueID();
-                if (!world.isRemote)
+                ownerId = player.getUUID();
+                if (!world.isClientSide)
                 {
-                    addKnife(result.getHitVec(), player.getLookVec(), stack);
-                    player.setHeldItem(hand, ItemStack.EMPTY);
+                    addKnife(result.getLocation(), player.getLookAngle(), stack);
+                    player.setItemInHand(hand, ItemStack.EMPTY);
                     world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundCategory.MASTER, 1, 1);
-                    PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, knifePos, knife, knifeDirection), world, player.getLookVec());
+                    PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, knifePos, knife, knifeDirection), world, player.getLookAngle());
                     setBindingState(state, BindingState.HEATING, Constants.BlockFlags.DEFAULT);
                 }
                 return true;
             }
-            else if (state.get(BlockTotemShelf.BINDING_STATE) == BindingState.BOUND && !knife.isEmpty() && stack.isEmpty()
+            else if (state.getValue(BlockTotemShelf.BINDING_STATE) == BindingState.BOUND && !knife.isEmpty() && stack.isEmpty()
                     && getObservedKnifeShape(pos, result, getKnifePos()) != null)
             {
-                if (!world.isRemote)
+                if (!world.isClientSide)
                 {
-                    player.setHeldItem(hand, knife);
+                    player.setItemInHand(hand, knife);
                     world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundCategory.MASTER, 0.5F, 2);
-                    world.playSound(null, pos, SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, SoundCategory.MASTER, 0.25F, 2);
+                    world.playSound(null, pos, SoundEvents.PLAYER_ATTACK_WEAK, SoundCategory.MASTER, 0.25F, 2);
                     Vector3d vec = knifePos.add(knifeDirection.scale(-0.05));
                     removeKnife();
                     PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, vec, knife), world, vec);
@@ -226,52 +226,52 @@ public class TileEntityTotemShelf extends TileEntity
     @Nullable
     public static VoxelShape getObservedKnifeShape(BlockPos pos, BlockRayTraceResult target, Vector3d knifePos)
     {
-        return knifePos == null ? null : getHitShape(BlockTotemShelf.SHAPE_KNIFE.withOffset(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ()), pos, target);
+        return knifePos == null ? null : getHitShape(BlockTotemShelf.SHAPE_KNIFE.move(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ()), pos, target);
     }
 
     @Nullable
     public static VoxelShape getHitShape(VoxelShape shape, BlockPos pos, BlockRayTraceResult target)
     {
-        return shape.getBoundingBox().grow(0.001, 0.001, 0.001).contains(target.getHitVec().subtract(pos.getX(), pos.getY(), pos.getZ())) ? shape : null;
+        return shape.bounds().inflate(0.001, 0.001, 0.001).contains(target.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ())) ? shape : null;
     }
 
     public void setBindingState(BlockState state, BindingState bindingState, int flags)
     {
-        if (world == null)
+        if (level == null)
             return;
 
         CompoundNBT nbt = getUpdateTag();
-        world.removeTileEntity(pos);
-        world.setBlockState(pos, state.with(BlockTotemShelf.BINDING_STATE, bindingState), flags);
-        TileEntity te = world.getTileEntity(pos);
+        level.removeBlockEntity(worldPosition);
+        level.setBlock(worldPosition, state.setValue(BlockTotemShelf.BINDING_STATE, bindingState), flags);
+        TileEntity te = level.getBlockEntity(worldPosition);
         if (te instanceof TileEntityTotemShelf)
         {
-            te.read(state, nbt);
-            markDirty();
-            world.notifyBlockUpdate(pos, state, state, Constants.BlockFlags.DEFAULT);
-            if (!world.isRemote && bindingState.hasNext())
-                world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 80);
+            te.load(state, nbt);
+            setChanged();
+            level.sendBlockUpdated(worldPosition, state, state, Constants.BlockFlags.DEFAULT);
+            if (!level.isClientSide && bindingState.hasNext())
+                level.getBlockTicks().scheduleTick(worldPosition, state.getBlock(), 80);
 
             if (bindingState == BindingState.COOLING)
                 ((TileEntityTotemShelf) te).bindKnifeAndShelf();
         }
 
-        if (world.isRemote)
+        if (level.isClientSide)
             return;
 
         if (bindingState == BindingState.HEATING)
-            world.playSound(null, pos, SoundsMod.BIND_SHELF.get(), SoundCategory.MASTER, 1, 1);
+            level.playSound(null, worldPosition, SoundsMod.BIND_SHELF.get(), SoundCategory.MASTER, 1, 1);
     }
 
     private void bindKnifeAndShelf()
     {
-        if (!(world instanceof ServerWorld))
+        if (!(level instanceof ServerWorld))
             return;
 
-        LivingEntity entity = NBTUtil.getBoundEntity(knife, (ServerWorld) world);
-        if (entity == null || entity.getDistanceSq(pos.getX(), pos.getY(), pos.getZ()) > Math.pow(Config.SERVER.maxDistanceToShelf.get(), 2))
+        LivingEntity entity = NBTUtil.getBoundEntity(knife, (ServerWorld) level);
+        if (entity == null || entity.distanceToSqr(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()) > Math.pow(Config.SERVER.maxDistanceToShelf.get(), 2))
         {
-            charShelf((ServerWorld) world, pos);
+            charShelf((ServerWorld) level, worldPosition);
             return;
         }
         AtomicInteger count = new AtomicInteger();
@@ -282,40 +282,40 @@ public class TileEntityTotemShelf extends TileEntity
         });
         while (count.get() >= Config.SERVER.maxBoundShelves.get())
         {
-            int burnIndex = world.rand.nextInt(count.get()) + 1;
+            int burnIndex = level.random.nextInt(count.get()) + 1;
             AtomicInteger countBurn = new AtomicInteger();
             visitTotemShelves(entity, (world, shelf) ->
             {
                 boolean forceRemoval = countBurn.incrementAndGet() == burnIndex;
                 if (forceRemoval)
                 {
-                    charShelf(world, shelf.pos);
+                    charShelf(world, shelf.worldPosition);
                     count.decrementAndGet();
                 }
                 return new ShelfVisitationResult(forceRemoval, !forceRemoval);
             });
         }
         NBTUtil.bindKnife(knife.getOrCreateTag());
-        boundEntityId = entity.getUniqueID();
-        ResourceLocation dimension = NBTUtil.getDimensionKey(world);
+        boundEntityId = entity.getUUID();
+        ResourceLocation dimension = NBTUtil.getDimensionKey(level);
         Hashtable<ResourceLocation, Set<BlockPos>> positionTable = CapabilityUtil.getShelfPositions(entity).getPositions();
         Set<BlockPos> positions = positionTable.get(dimension);
         if (positions == null)
             positions = new HashSet<>();
 
-        positions.add(pos);
+        positions.add(worldPosition);
         positionTable.put(dimension, positions);
-        PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F, world.getBlockState(pos).getCollisionShape(world, pos).getBoundingBox().offset(pos).getCenter(), null), entity);
+        PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F, level.getBlockState(worldPosition).getCollisionShape(level, worldPosition).bounds().move(worldPosition).getCenter(), null), entity);
     }
 
     private void charShelf(ServerWorld world, BlockPos pos) {
         BlockState statePrimary = world.getBlockState(pos);
         PositionsTotemShelf positions = BlockTotemShelf.getTotemShelfPositions(statePrimary, world, pos);
-        world.setBlockState(pos, statePrimary.with(BlockTotemShelf.CHARRED, true));
+        world.setBlockAndUpdate(pos, statePrimary.setValue(BlockTotemShelf.CHARRED, true));
         if (positions != null)
         {
             BlockPos posSecondary = positions.getPosOffset();
-            world.setBlockState(posSecondary, world.getBlockState(posSecondary).with(BlockTotemShelf.CHARRED, true));
+            world.setBlockAndUpdate(posSecondary, world.getBlockState(posSecondary).setValue(BlockTotemShelf.CHARRED, true));
         }
         EntityUtil.spawnLightning(statePrimary, world, pos);
         BlockTotemShelf.addShelfBreakingEffects(world, pos, statePrimary, true);
@@ -323,7 +323,7 @@ public class TileEntityTotemShelf extends TileEntity
 
     public static void visitTotemShelves(LivingEntity entity, BiFunction<ServerWorld, TileEntityTotemShelf, ShelfVisitationResult> action)
     {
-        MinecraftServer server = entity.world.getServer();
+        MinecraftServer server = entity.level.getServer();
         if (server == null)
             return;
 
@@ -333,7 +333,7 @@ public class TileEntityTotemShelf extends TileEntity
         while (iteratorDim.hasNext())
         {
             ResourceLocation dimensionKey = iteratorDim.next();
-            ServerWorld world = server.getWorld(NBTUtil.getDimension(dimensionKey));
+            ServerWorld world = server.getLevel(NBTUtil.getDimension(dimensionKey));
             if (world == null)
                 continue;
 
@@ -347,12 +347,12 @@ public class TileEntityTotemShelf extends TileEntity
             while (iteratorPos.hasNext())
             {
                 BlockPos pos = iteratorPos.next();
-                TileEntity te = world.getTileEntity(pos);
+                TileEntity te = world.getBlockEntity(pos);
                 boolean foundShelf = false;
                 if (te instanceof TileEntityTotemShelf)
                 {
                     TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
-                    if (entity.getUniqueID().equals(totemShelf.boundEntityId) && !world.getBlockState(pos).get(BlockTotemShelf.CHARRED))
+                    if (entity.getUUID().equals(totemShelf.boundEntityId) && !world.getBlockState(pos).getValue(BlockTotemShelf.CHARRED))
                     {
                         ShelfVisitationResult result = action.apply(world, totemShelf);
                         foundShelf = !result.forceRemoval();
@@ -392,17 +392,17 @@ public class TileEntityTotemShelf extends TileEntity
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt)
     {
-        read(getBlockState(), pkt.getNbtCompound());
-        if (world == null || !world.isRemote)
+        load(getBlockState(), pkt.getTag());
+        if (level == null || !level.isClientSide)
             return;
 
         Minecraft.getInstance().execute(() ->
         {
             BlockState state = getBlockState();
-            if (state.get(BlockTotemShelf.HALF) != DoubleBlockHalf.UPPER)
+            if (state.getValue(BlockTotemShelf.HALF) != DoubleBlockHalf.UPPER)
                 return;
 
-            BindingState bindingState = state.get(BlockTotemShelf.BINDING_STATE);
+            BindingState bindingState = state.getValue(BlockTotemShelf.BINDING_STATE);
             if (bindingState == BindingState.HEATING != this instanceof TileEntityTotemShelfBinding)
                 setBindingState(state, bindingState, Constants.BlockFlags.DEFAULT);
         });
@@ -412,12 +412,12 @@ public class TileEntityTotemShelf extends TileEntity
     @Nullable
     public SUpdateTileEntityPacket getUpdatePacket()
     {
-        return new SUpdateTileEntityPacket(pos, 0, getUpdateTag());
+        return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
     }
 
     @Override
     public CompoundNBT getUpdateTag()
     {
-        return write(new CompoundNBT());
+        return save(new CompoundNBT());
     }
 }

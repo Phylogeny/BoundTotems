@@ -42,14 +42,14 @@ public class PositionsTotemShelf
             else
             {
                 BlockRayTraceResult result = EntityUtil.rayTraceBlocks(player);
-                facingTotemShelf = result.getType() == RayTraceResult.Type.MISS ? null : result.getFace().getAxis() == Axis.Y ? player.getHorizontalFacing().getOpposite() : result.getFace();
+                facingTotemShelf = result.getType() == RayTraceResult.Type.MISS ? null : result.getDirection().getAxis() == Axis.Y ? player.getDirection().getOpposite() : result.getDirection();
             }
         }
         else
         {
-            int stage = state.get(BlockTotemShelf.STAGE);
-            stageNext = stage == BlockTotemShelf.STAGE.getAllowedValues().size() - 1 ? null : stage + 1;
-            facingTotemShelf = state.get(BlockTotemShelf.FACING);
+            int stage = state.getValue(BlockTotemShelf.STAGE);
+            stageNext = stage == BlockTotemShelf.STAGE.getPossibleValues().size() - 1 ? null : stage + 1;
+            facingTotemShelf = state.getValue(BlockTotemShelf.FACING);
         }
     }
 
@@ -59,25 +59,25 @@ public class PositionsTotemShelf
             return;
 
         PacketNetwork.sendToAllAround(new PacketTotemShelfCarveEffects(stageNext, posLower, facingTotemShelf), world, posUpper);
-        BlockState stateNew = BlocksMod.TOTEM_SHELF.get().getDefaultState().with(BlockTotemShelf.STAGE, stageNext).with(BlockTotemShelf.FACING, facingTotemShelf);
-        world.setBlockState(posUpper, stateNew.with(BlockTotemShelf.HALF, DoubleBlockHalf.UPPER));
-        world.setBlockState(posLower, stateNew.with(BlockTotemShelf.HALF, DoubleBlockHalf.LOWER));
+        BlockState stateNew = BlocksMod.TOTEM_SHELF.get().defaultBlockState().setValue(BlockTotemShelf.STAGE, stageNext).setValue(BlockTotemShelf.FACING, facingTotemShelf);
+        world.setBlockAndUpdate(posUpper, stateNew.setValue(BlockTotemShelf.HALF, DoubleBlockHalf.UPPER));
+        world.setBlockAndUpdate(posLower, stateNew.setValue(BlockTotemShelf.HALF, DoubleBlockHalf.LOWER));
         if (stageNext >= 7 || stageNext % 2 != 0)
             return;
 
-        AxisAlignedBB box = (stageNext == 0 ? VoxelShapes.fullCube() : BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew.with(BlockTotemShelf.STAGE, stageNext - 1))).getBoundingBox();
+        AxisAlignedBB box = (stageNext == 0 ? VoxelShapes.block() : BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew.setValue(BlockTotemShelf.STAGE, stageNext - 1))).bounds();
         Direction facing = facingTotemShelf.getOpposite();
         if (facing.getAxis() == Axis.X)
             box = box.contract(facing.getAxisDirection() == AxisDirection.POSITIVE ? box.maxX - 0.125 : box.minX - 0.875, 0, 0);
         else
             box = box.contract(0, 0, facing.getAxisDirection() == AxisDirection.POSITIVE ? box.maxZ - 0.125 : box.minZ - 0.875);
 
-        double x = posLower.getX() + box.minX + world.rand.nextFloat() * (box.maxX - box.minX);
-        double y = posLower.getY() + world.rand.nextFloat() * 2;
-        double z = posLower.getZ() + box.minZ + world.rand.nextFloat() * (box.maxZ - box.minZ);
+        double x = posLower.getX() + box.minX + world.random.nextFloat() * (box.maxX - box.minX);
+        double y = posLower.getY() + world.random.nextFloat() * 2;
+        double z = posLower.getZ() + box.minZ + world.random.nextFloat() * (box.maxZ - box.minZ);
         ItemEntity ItemEntity = new ItemEntity(world, x, y, z, new ItemStack(ItemsMod.PLANK.get()));
-        ItemEntity.setDefaultPickupDelay();
-        world.addEntity(ItemEntity);
+        ItemEntity.setDefaultPickUpDelay();
+        world.addFreshEntity(ItemEntity);
     }
 
     public BlockPos getPosOffset()

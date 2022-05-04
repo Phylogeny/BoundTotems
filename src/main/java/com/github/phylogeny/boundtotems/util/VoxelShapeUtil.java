@@ -20,7 +20,7 @@ public class VoxelShapeUtil
 {
     public static Collection<VoxelShape> makeCuboidShape(double x1, double y1, double z1, double x2, double y2, double z2)
     {
-        return Collections.singletonList(Block.makeCuboidShape(x1, y1, z1, x2, y2, z2));
+        return Collections.singletonList(Block.box(x1, y1, z1, x2, y2, z2));
     }
 
     public static ImmutableMap<BlockState, VoxelShape> getTransformedShapes(ImmutableMap<BlockState, VoxelShape> shapes, java.util.function.Function<VoxelShape, VoxelShape> transform)
@@ -34,7 +34,7 @@ public class VoxelShapeUtil
     {
         ImmutableMap.Builder<BlockState, VoxelShape> builder = new ImmutableMap.Builder<>();
         states.forEach(state -> builder.put(state, combineAll(getRotatedVoxelShapes(factory.apply(state))
-                .stream().map(shapes -> shapes[state.get(facing).getHorizontalIndex()]).collect(Collectors.toList()))));
+                .stream().map(shapes -> shapes[state.getValue(facing).get2DDataValue()]).collect(Collectors.toList()))));
         return builder.build();
     }
 
@@ -46,15 +46,15 @@ public class VoxelShapeUtil
     public static Collection<VoxelShape[]> getRotatedVoxelShapes(Collection<VoxelShape> shapes)
     {
         return shapes.stream().map(shape -> IntStream.range(0, 4)
-                .mapToObj(index -> rotateShape(shape, Direction.byHorizontalIndex((index + 3) % 4))).toArray(VoxelShape[]::new)).collect(Collectors.toList());
+                .mapToObj(index -> rotateShape(shape, Direction.from2DDataValue((index + 3) % 4))).toArray(VoxelShape[]::new)).collect(Collectors.toList());
     }
 
     public static VoxelShape rotateShape(VoxelShape shape, Direction facing)
     {
-        double startX = shape.getStart(Axis.X);
-        double startZ = shape.getStart(Axis.Z);
-        double endX = shape.getEnd(Axis.X);
-        double endZ = shape.getEnd(Axis.Z);
+        double startX = shape.min(Axis.X);
+        double startZ = shape.min(Axis.Z);
+        double endX = shape.max(Axis.X);
+        double endZ = shape.max(Axis.Z);
         switch(facing)
         {
             case WEST:
@@ -83,6 +83,6 @@ public class VoxelShapeUtil
                 break;
             default:
         }
-        return VoxelShapes.create(startX, shape.getStart(Axis.Y), startZ, endX, shape.getEnd(Axis.Y), endZ);
+        return VoxelShapes.box(startX, shape.min(Axis.Y), startZ, endX, shape.max(Axis.Y), endZ);
     }
 }

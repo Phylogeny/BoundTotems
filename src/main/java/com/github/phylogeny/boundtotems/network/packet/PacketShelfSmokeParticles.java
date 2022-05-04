@@ -22,7 +22,7 @@ public class PacketShelfSmokeParticles
 
     public PacketShelfSmokeParticles(World world, BlockPos pos, BlockState state, boolean charShelf)
     {
-        box = charShelf ? null : getOffsetShape(world, pos, state).getBoundingBox().grow(0.1);
+        box = charShelf ? null : getOffsetShape(world, pos, state).bounds().inflate(0.1);
         this.pos = pos;
     }
 
@@ -33,7 +33,7 @@ public class PacketShelfSmokeParticles
     }
 
     private static VoxelShape getOffsetShape(World world, BlockPos pos, BlockState state) {
-        return state.getCollisionShape(world, pos).withOffset(pos.getX(), pos.getY(), pos.getZ());
+        return state.getCollisionShape(world, pos).move(pos.getX(), pos.getY(), pos.getZ());
     }
 
     public static void encode(PacketShelfSmokeParticles msg, PacketBuffer buf)

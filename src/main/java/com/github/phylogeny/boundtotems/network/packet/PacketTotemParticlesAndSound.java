@@ -18,7 +18,7 @@ public class PacketTotemParticlesAndSound
 
     public PacketTotemParticlesAndSound(Entity entity)
     {
-        this(entity.getEntityId(), Config.SERVER.spawnParticles.get(), Config.SERVER.playSound.get());
+        this(entity.getId(), Config.SERVER.spawnParticles.get(), Config.SERVER.playSound.get());
     }
 
     public PacketTotemParticlesAndSound(int entityId, boolean particles, boolean sound)
@@ -46,15 +46,15 @@ public class PacketTotemParticlesAndSound
         {
             ctx.get().enqueueWork(() ->
             {
-                Entity entity = Minecraft.getInstance().world != null ? Minecraft.getInstance().world.getEntityByID(msg.entityId) : null;
+                Entity entity = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getEntity(msg.entityId) : null;
                 if (entity == null)
                     return;
 
                 if (msg.particles)
-                    Minecraft.getInstance().particles.emitParticleAtEntity(entity, ParticleTypes.TOTEM_OF_UNDYING, 30);
+                    Minecraft.getInstance().particleEngine.createTrackingEmitter(entity, ParticleTypes.TOTEM_OF_UNDYING, 30);
 
                 if (msg.sound)
-                    ClientEvents.playSoundAtEntity(entity, SoundEvents.ITEM_TOTEM_USE, 1.0F);
+                    ClientEvents.playSoundAtEntity(entity, SoundEvents.TOTEM_USE, 1.0F);
             });
             ctx.get().setPacketHandled(true);
         }

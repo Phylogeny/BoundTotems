@@ -61,7 +61,7 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
     @Override
     public String getTitle()
     {
-        return I18n.format(LANG_KEY);
+        return I18n.get(LANG_KEY);
     }
 
     @Override
@@ -101,26 +101,26 @@ public class InWorldRecipeCategory implements IRecipeCategory<InWorldRecipe>
         arrow.draw(matrixStack, offsetX - 2, offsetY + 5);
         offsetX += 12;
         offsetY += 54;
-        FontRenderer fr = Minecraft.getInstance().fontRenderer;
-        String tool = I18n.format(LANG_KEY + ".tool");
-        fr.drawString(matrixStack, tool, offsetX + 14 - fr.getStringWidth(tool) / 2F, offsetY, 0);
-        matrixStack.push();
+        FontRenderer fr = Minecraft.getInstance().font;
+        String tool = I18n.get(LANG_KEY + ".tool");
+        fr.draw(matrixStack, tool, offsetX + 14 - fr.width(tool) / 2F, offsetY, 0);
+        matrixStack.pushPose();
         GuiUtils.drawContinuousTexturedBox(matrixStack, InWorldRecipeCategory.TEXTURE_GUI, offsetX, offsetY + 10, 0, 0, 28, 28, 32, 16, 2, 0);
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 
     private void drawTexture(ResourceLocation texture, MatrixStack matrixStack, float x, float y, float width, float height)
     {
-        Minecraft.getInstance().getTextureManager().bindTexture(texture);
-        Matrix4f matrix = matrixStack.getLast().getMatrix();
-        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        Minecraft.getInstance().getTextureManager().bind(texture);
+        Matrix4f matrix = matrixStack.last().pose();
+        BufferBuilder buffer = Tessellator.getInstance().getBuilder();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-        buffer.pos(matrix, x, y + height, 0).tex(0, 1).endVertex();
-        buffer.pos(matrix, x + width, y + height, 0).tex(1, 1).endVertex();
-        buffer.pos(matrix, x + width, y, 0).tex(1, 0).endVertex();
-        buffer.pos(matrix, x, y, 0).tex(0, 0).endVertex();
-        buffer.finishDrawing();
-        WorldVertexBufferUploader.draw(buffer);
+        buffer.vertex(matrix, x, y + height, 0).uv(0, 1).endVertex();
+        buffer.vertex(matrix, x + width, y + height, 0).uv(1, 1).endVertex();
+        buffer.vertex(matrix, x + width, y, 0).uv(1, 0).endVertex();
+        buffer.vertex(matrix, x, y, 0).uv(0, 0).endVertex();
+        buffer.end();
+        WorldVertexBufferUploader.end(buffer);
     }
 
     @Override

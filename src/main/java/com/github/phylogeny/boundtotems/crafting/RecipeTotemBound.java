@@ -23,9 +23,9 @@ public class RecipeTotemBound extends ShapelessRecipe
     }
 
     @Override
-    public ItemStack getCraftingResult(CraftingInventory inv)
+    public ItemStack assemble(CraftingInventory inv)
     {
-        return transferBoundTotemNBT(inv, super.getCraftingResult(inv), totem -> totem instanceof ItemBoundTotemTeleporting ? 2 : 1);
+        return transferBoundTotemNBT(inv, super.assemble(inv), totem -> totem instanceof ItemBoundTotemTeleporting ? 2 : 1);
     }
 
     public static ItemStack transferBoundTotemNBT(CraftingInventory inv, ItemStack result, Function<Item, Integer> copySourceInstance)
@@ -42,18 +42,18 @@ public class RecipeTotemBound extends ShapelessRecipe
     @Override
     public NonNullList<ItemStack> getRemainingItems(CraftingInventory inv)
     {
-        NonNullList<ItemStack> remainder = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+        NonNullList<ItemStack> remainder = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
         applyToBoundTotem(inv, 1, (index, stack) -> remainder.set(index, stack.copy()));
-        inv.markDirty();
+        inv.setChanged();
         return remainder;
     }
 
     private static void applyToBoundTotem(CraftingInventory inv, int instance, BiConsumer<Integer, ItemStack> operation)
     {
         ItemStack stack;
-        for (int i = 0; i < inv.getSizeInventory(); i++)
+        for (int i = 0; i < inv.getContainerSize(); i++)
         {
-            stack = inv.getStackInSlot(i);
+            stack = inv.getItem(i);
             if (stack.getItem() instanceof ItemBoundTotem && --instance == 0)
             {
                 operation.accept(i, stack);
@@ -65,10 +65,10 @@ public class RecipeTotemBound extends ShapelessRecipe
     public static class Serializer extends ShapelessRecipe.Serializer
     {
         @Override
-        public ShapelessRecipe read(ResourceLocation recipeId, JsonObject json)
+        public ShapelessRecipe fromJson(ResourceLocation recipeId, JsonObject json)
         {
-            ShapelessRecipe recipe = super.read(recipeId, json);
-            return new RecipeTotemBound(recipe.getId(), recipe.getGroup(), recipe.getRecipeOutput(), recipe.getIngredients());
+            ShapelessRecipe recipe = super.fromJson(recipeId, json);
+            return new RecipeTotemBound(recipe.getId(), recipe.getGroup(), recipe.getResultItem(), recipe.getIngredients());
         }
     }
 }

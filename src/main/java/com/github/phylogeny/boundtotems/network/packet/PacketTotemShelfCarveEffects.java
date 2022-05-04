@@ -27,12 +27,12 @@ public class PacketTotemShelfCarveEffects
     {
         buf.writeInt(msg.stageNext);
         buf.writeBlockPos(msg.pos);
-        buf.writeInt(msg.facing.getIndex());
+        buf.writeInt(msg.facing.get3DDataValue());
     }
 
     public static PacketTotemShelfCarveEffects decode(PacketBuffer buf)
     {
-        return new PacketTotemShelfCarveEffects(buf.readInt(), buf.readBlockPos(), Direction.byIndex(buf.readInt()));
+        return new PacketTotemShelfCarveEffects(buf.readInt(), buf.readBlockPos(), Direction.from3DDataValue(buf.readInt()));
     }
 
     public static class Handler

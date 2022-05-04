@@ -21,7 +21,7 @@ public class PacketAddGhost
 
     public PacketAddGhost(Entity entity, float velocity, @Nullable Vector3d targetPos, @Nullable Entity targetEntity)
     {
-        this(entity.getEntityId(), velocity, targetPos, targetEntity == null ? null : targetEntity.getEntityId());
+        this(entity.getId(), velocity, targetPos, targetEntity == null ? null : targetEntity.getId());
     }
 
     public PacketAddGhost(int entityId, float velocity, @Nullable Vector3d targetPos, @Nullable Integer targetEntityId)
@@ -53,13 +53,13 @@ public class PacketAddGhost
             ctx.get().enqueueWork(() ->
             {
                 World world = ClientEvents.getWorld();
-                Entity entity = world.getEntityByID(msg.entityId);
+                Entity entity = world.getEntity(msg.entityId);
                 if (entity == null)
                     return;
 
-                ClientEvents.playSoundAtEntity(entity, SoundsMod.EXHALE.get(),1.4F - world.rand.nextFloat() * 0.8F);
+                ClientEvents.playSoundAtEntity(entity, SoundsMod.EXHALE.get(),1.4F - world.random.nextFloat() * 0.8F);
                 ClientEvents.addGhost(world, entity, msg.velocity, msg.targetPos,
-                        msg.targetEntityId == null ? null : world.getEntityByID(msg.targetEntityId));
+                        msg.targetEntityId == null ? null : world.getEntity(msg.targetEntityId));
             });
             ctx.get().setPacketHandled(true);
         }

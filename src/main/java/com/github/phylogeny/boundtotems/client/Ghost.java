@@ -27,8 +27,8 @@ import java.util.List;
 
 public class Ghost
 {
-    private static final Field LAYER_RENDERERS = ObfuscationReflectionHelper.findField(LivingRenderer.class, "field_177097_h");
-    public static final Field GAME_TYPE = ObfuscationReflectionHelper.findField(NetworkPlayerInfo.class, "field_178866_b");
+    private static final Field LAYERS = ObfuscationReflectionHelper.findField(LivingRenderer.class, "field_177097_h");
+    public static final Field GAME_MODE = ObfuscationReflectionHelper.findField(NetworkPlayerInfo.class, "field_178866_b");
     private final Entity entity, targetEntity;
     private final float velocity, halfEntityWidth;
     private Vector3d pos, motion, targetPos;
@@ -38,13 +38,13 @@ public class Ghost
     {
         this.entity = entity;
         this.velocity = velocity;
-        halfEntityWidth = entity.getWidth() / 2F;
+        halfEntityWidth = entity.getBbWidth() / 2F;
         if (targetPos != null)
             targetPos = offsetTarget(targetPos);
 
         this.targetPos = targetPos;
         this.targetEntity = targetEntity;
-        pos = entity.getPositionVec();
+        pos = entity.position();
         updateMotion();
     }
 
@@ -70,7 +70,7 @@ public class Ghost
 
     private Vector3d offsetTarget(Vector3d target)
     {
-        return target.subtract(0, entity.getHeight() * (entity instanceof ItemEntity ? 1.3 : 0.5), 0);
+        return target.subtract(0, entity.getBbHeight() * (entity instanceof ItemEntity ? 1.3 : 0.5), 0);
     }
 
     public void render(RenderWorldLastEvent event)
@@ -78,28 +78,28 @@ public class Ghost
         IRenderTypeBuffer.Impl typeBuffer = BufferBuilderTransparent.getRenderTypeBuffer();
         float partialTicks = event.getPartialTicks();
         Vector3d pos = this.pos.add(motion.scale(partialTicks));
-        Vector3d posCamera = Minecraft.getInstance().gameRenderer.getActiveRenderInfo().getProjectedView();
+        Vector3d posCamera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         double dx = pos.x - posCamera.x;
         double dy = pos.y - posCamera.y;
         double dz = pos.z - posCamera.z;
-        float f = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks;
+        float f = entity.yRotO + (entity.yRot - entity.yRotO) * partialTicks;
         BufferBuilderTransparent.alpha = alpha;
-        EntityRendererManager rendererManager = Minecraft.getInstance().getRenderManager();
+        EntityRendererManager rendererManager = Minecraft.getInstance().getEntityRenderDispatcher();
         rendererManager.setRenderShadow(false);
         int packedLight = 15728880;
         if (entity instanceof ItemEntity)
-            rendererManager.renderEntityStatic(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
+            rendererManager.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
         else
         {
             EntityRenderer<? super Entity> renderer = rendererManager.getRenderer(entity);
             if (renderer instanceof LivingRenderer)
             {
                 LivingRenderer rendererLiving = (LivingRenderer) renderer;
-                List<LayerRenderer> layers = (List<LayerRenderer>) ReflectionUtil.getValue(LAYER_RENDERERS, rendererLiving);
-                ReflectionUtil.setValue(LAYER_RENDERERS, rendererLiving, new ArrayList<>());
-                RenderType renderType = rendererLiving.getEntityModel().getRenderType(rendererLiving.getEntityTexture(entity));
+                List<LayerRenderer> layers = (List<LayerRenderer>) ReflectionUtil.getValue(Ghost.LAYERS, rendererLiving);
+                ReflectionUtil.setValue(Ghost.LAYERS, rendererLiving, new ArrayList<>());
+                RenderType renderType = rendererLiving.getModel().renderType(rendererLiving.getTextureLocation(entity));
                 if (entity instanceof PlayerEntity && !renderType.toString().contains("cutout"))
-                    rendererManager.renderEntityStatic(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
+                    rendererManager.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
                 else
                 {
                     ClientPlayNetHandler connection = Minecraft.getInstance().getConnection();
@@ -108,29 +108,29 @@ public class Ghost
                         NetworkPlayerInfo playerInfo = connection.getPlayerInfo(ClientEvents.getPlayer().getGameProfile().getId());
                         if (playerInfo != null)
                         {
-                            GameType gameType = playerInfo.getGameType();
-                            ReflectionUtil.setValue(GAME_TYPE, playerInfo, GameType.SPECTATOR);
+                            GameType gameType = playerInfo.getGameMode();
+                            ReflectionUtil.setValue(GAME_MODE, playerInfo, GameType.SPECTATOR);
                             boolean isInvisible = entity.isInvisible();
                             entity.setInvisible(true);
                             Entity leashHolder = null;
                             if (entity instanceof MobEntity) {
                                 MobEntity mob = (MobEntity) entity;
                                 leashHolder = mob.getLeashHolder();
-                                mob.setVehicleEntityId(0);
+                                mob.setDelayedLeashHolderId(0);
                             }
-                            rendererManager.renderEntityStatic(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
+                            rendererManager.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
                             if (leashHolder != null)
-                                ((MobEntity) entity).setLeashHolder(leashHolder, false);
+                                ((MobEntity) entity).setLeashedTo(leashHolder, false);
 
-                            ReflectionUtil.setValue(GAME_TYPE, playerInfo, gameType);
+                            ReflectionUtil.setValue(GAME_MODE, playerInfo, gameType);
                             entity.setInvisible(isInvisible);
                         }
                     }
                 }
-                ReflectionUtil.setValue(LAYER_RENDERERS, rendererLiving, layers);
+                ReflectionUtil.setValue(Ghost.LAYERS, rendererLiving, layers);
             }
         }
-        typeBuffer.finish();
+        typeBuffer.endBatch();
         rendererManager.setRenderShadow(true);
     }
 }

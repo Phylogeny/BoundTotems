@@ -36,7 +36,7 @@ public class ItemRitualDagger extends Item
 
     public ItemRitualDagger(Properties properties)
     {
-        super(properties.maxStackSize(1));
+        super(properties.stacksTo(1));
     }
 
     public enum State
@@ -68,44 +68,44 @@ public class ItemRitualDagger extends Item
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotType slot, ItemStack stack)
     {
         return slot != EquipmentSlotType.MAINHAND || State.get(stack) != State.BOUND ? super.getAttributeModifiers(slot, stack)
-                : ImmutableMultimap.of(Attributes.ATTACK_DAMAGE, new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 5, AttributeModifier.Operation.ADDITION));
+                : ImmutableMultimap.of(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", 5, AttributeModifier.Operation.ADDITION));
     }
 
     @Override
-    public String getTranslationKey(ItemStack stack)
+    public String getDescriptionId(ItemStack stack)
     {
         return State.get(stack).getLangKey();
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
     {
         NBTUtil.addBoundEntityInformation(stack, tooltip);
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World world, PlayerEntity player, Hand hand)
+    public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand)
     {
         ActionResultType result = ActionResultType.PASS;
-        ItemStack stack = player.getHeldItem(hand);
-        if (player.isSneaking())
+        ItemStack stack = player.getItemInHand(hand);
+        if (player.isShiftKeyDown())
         {
             setBoundEntity(stack, player, player, true);
             result = ActionResultType.SUCCESS;
         }
         else if (NBTUtil.hasBoundEntity(stack))
         {
-            ItemEntity entityTotem = EntityUtil.rayTraceEntities(world, player, ItemEntity.class, box -> box.expand(0, 0.25, 0));
+            ItemEntity entityTotem = EntityUtil.rayTraceEntities(world, player, ItemEntity.class, box -> box.expandTowards(0, 0.25, 0));
             ItemStack stackBound = ItemsMod.getBoundItem(entityTotem);
             if (!stackBound.isEmpty())
             {
-                if (!world.isRemote)
+                if (!world.isClientSide)
                 {
                     entityTotem.setItem(NBTUtil.copyBoundEntity(stack, stackBound));
                     sendGhostPacket(player, entityTotem);
                 }
                 result = ActionResultType.SUCCESS;
-                player.swingArm(hand);
+                player.swing(hand);
             }
         }
         return new ActionResult<>(result, stack);
@@ -118,8 +118,8 @@ public class ItemRitualDagger extends Item
 
         if (attackSelf)
         {
-            player.attackTargetEntityWithCurrentItem(player);
-            player.resetCooldown();
+            player.attack(player);
+            player.resetAttackStrengthTicker();
             return true;
         }
         return NBTUtil.setBoundEntity(stack, (LivingEntity) entity);
@@ -140,19 +140,19 @@ public class ItemRitualDagger extends Item
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context)
+    public ActionResultType useOn(ItemUseContext context)
     {
-        if (State.get(context.getItem()) == State.BLOODY && NBTUtil.hasBoundEntity(context.getItem()))
+        if (State.get(context.getItemInHand()) == State.BLOODY && NBTUtil.hasBoundEntity(context.getItemInHand()))
         {
-            BlockState state = context.getWorld().getBlockState(context.getPos());
+            BlockState state = context.getLevel().getBlockState(context.getClickedPos());
             if (state.getBlock() instanceof CauldronBlock)
             {
-                int level = state.get(CauldronBlock.LEVEL);
+                int level = state.getValue(CauldronBlock.LEVEL);
                 if (level > 0)
                 {
-                    ((CauldronBlock) state.getBlock()).setWaterLevel(context.getWorld(), context.getPos(), state, level - 1);
-                    context.getItem().getOrCreateTag().remove(NBTUtil.BOUND_ENTITY);
-                    context.getWorld().playSound(null, context.getPos(), SoundEvents.ENTITY_BOAT_PADDLE_WATER, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                    ((CauldronBlock) state.getBlock()).setWaterLevel(context.getLevel(), context.getClickedPos(), state, level - 1);
+                    context.getItemInHand().getOrCreateTag().remove(NBTUtil.BOUND_ENTITY);
+                    context.getLevel().playSound(null, context.getClickedPos(), SoundEvents.BOAT_PADDLE_WATER, SoundCategory.BLOCKS, 1.0F, 1.0F);
                     return ActionResultType.SUCCESS;
                 }
             }

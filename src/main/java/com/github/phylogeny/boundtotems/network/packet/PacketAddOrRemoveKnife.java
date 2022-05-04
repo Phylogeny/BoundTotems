@@ -39,13 +39,13 @@ public class PacketAddOrRemoveKnife
     {
         buf.writeBlockPos(msg.pos);
         PacketBufferUtil.writeVec(buf, msg.knifePos);
-        buf.writeItemStack(msg.knifeStack);
+        buf.writeItem(msg.knifeStack);
         PacketBufferUtil.writeNullableObject(buf, msg.knifeDirection, o -> PacketBufferUtil.writeVec(buf, o));
     }
 
     public static PacketAddOrRemoveKnife decode(PacketBuffer buf)
     {
-        return new PacketAddOrRemoveKnife(buf.readBlockPos(), PacketBufferUtil.readVec(buf), buf.readItemStack(),
+        return new PacketAddOrRemoveKnife(buf.readBlockPos(), PacketBufferUtil.readVec(buf), buf.readItem(),
                 PacketBufferUtil.readNullableObject(buf, PacketBufferUtil::readVec));
     }
 
@@ -59,10 +59,10 @@ public class PacketAddOrRemoveKnife
                 if (player == null)
                     return;
 
-                TileEntity te = player.world.getTileEntity(msg.pos);
+                TileEntity te = player.level.getBlockEntity(msg.pos);
                 if (te instanceof TileEntityTotemShelf)
                 {
-                    BlockState state = player.world.getBlockState(msg.pos);
+                    BlockState state = player.level.getBlockState(msg.pos);
                     if (state.getBlock() instanceof BlockTotemShelf)
                     {
                         if (msg.knifeDirection != null)

@@ -25,8 +25,8 @@ public class BlocksMod
         return register(name, factory, Material.WOOD, MaterialColor.WOOD, SoundType.WOOD, 2F);
     }
 
-    private static <T extends Block> RegistryObject<T> register(String name, Function<Block.Properties, T> factory, Material material, MaterialColor color, SoundType sound, float hardnessAndResistance)
+    private static <T extends Block> RegistryObject<T> register(String name, Function<Block.Properties, T> factory, Material material, MaterialColor color, SoundType sound, float strength)
     {
-        return BLOCKS.register(name, () -> factory.apply(Block.Properties.create(material, color).sound(sound).hardnessAndResistance(hardnessAndResistance)));
+        return BLOCKS.register(name, () -> factory.apply(Block.Properties.of(material, color).sound(sound).strength(strength)));
     }
 }

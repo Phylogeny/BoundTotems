@@ -40,19 +40,19 @@ public class RendererTileEntityTotemShelf extends TileEntityRenderer<TileEntityT
     @Override
     public void render(TileEntityTotemShelf totemShelf, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay)
     {
-        matrixStack.push();
+        matrixStack.pushPose();
         {
-            BlockPos pos = totemShelf.getPos();
+            BlockPos pos = totemShelf.getBlockPos();
             Integer alpha = null;
             IRenderTypeBuffer.Impl typeBuffer = BufferBuilderTransparent.getRenderTypeBuffer();
-            matrixStack.push();
+            matrixStack.pushPose();
             {
                 matrixStack.translate(0.50002,  0.003125 - 0.5, 0.50002);
-                Direction facing = totemShelf.getBlockState().get(BlockTotemShelf.FACING);
+                Direction facing = totemShelf.getBlockState().getValue(BlockTotemShelf.FACING);
                 if (facing.getAxis() == Axis.X)
                     facing = facing.getOpposite();
 
-                matrixStack.rotate(Vector3f.YP.rotationDegrees(facing.getHorizontalAngle()));
+                matrixStack.mulPose(Vector3f.YP.rotationDegrees(facing.toYRot()));
                 if (totemShelf instanceof TileEntityTotemShelfBinding)
                 {
                     alpha = (int) (255 * ((TileEntityTotemShelfBinding) totemShelf).getBindingPercentage());
@@ -68,26 +68,26 @@ public class RendererTileEntityTotemShelf extends TileEntityRenderer<TileEntityT
                     ItemStack stack = inventory.getStackInSlot(i);
                     if (!stack.isEmpty())
                     {
-                        matrixStack.push();
+                        matrixStack.pushPose();
                         {
                             matrixStack.translate((i % 2) * 0.5, -(i / 2) * (0.625 / scaleTotems), 0);
                             renderItem(stack, matrixStack, buffer, combinedLight, combinedOverlay);
                         }
-                        matrixStack.pop();
+                        matrixStack.popPose();
                     }
                 }
             }
-            matrixStack.pop();
+            matrixStack.popPose();
             Vector3d knifePos = totemShelf.getKnifePos();
             if (knifePos != null)
             {
                 matrixStack.translate(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ());
-                matrixStack.rotate(Vector3f.YP.rotationDegrees(-90));
+                matrixStack.mulPose(Vector3f.YP.rotationDegrees(-90));
                 Vector3d dir = totemShelf.getKnifeDirection();
                 assert dir != null;
-                matrixStack.rotate(Vector3f.YP.rotation((float) Math.atan2(dir.x, dir.z)));
-                matrixStack.rotate(Vector3f.ZP.rotationDegrees(-45));
-                matrixStack.rotate(Vector3f.ZP.rotation((float) Math.asin(dir.y)));
+                matrixStack.mulPose(Vector3f.YP.rotation((float) Math.atan2(dir.x, dir.z)));
+                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-45));
+                matrixStack.mulPose(Vector3f.ZP.rotation((float) Math.asin(dir.y)));
                 matrixStack.translate(0, -0.15, 0);
                 BufferBuilderTransparent.alpha = 255;
                 renderItem(totemShelf.getKnife(), matrixStack, alpha != null ? typeBuffer : buffer, combinedLight, combinedOverlay);
@@ -95,22 +95,22 @@ public class RendererTileEntityTotemShelf extends TileEntityRenderer<TileEntityT
                     renderItemGlowing(totemShelf.getKnife().copy(), TransformType.GROUND, matrixStack, typeBuffer, combinedOverlay, alpha);
             }
         }
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 
     public void renderItem(ItemStack stack, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay)
     {
-        IBakedModel model = Minecraft.getInstance().getItemRenderer().getItemModelWithOverrides(stack, renderDispatcher.world, null);
-        Minecraft.getInstance().getItemRenderer().renderItem(stack, TransformType.GROUND, false, matrixStack, buffer, combinedLight, combinedOverlay, model);
+        IBakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, renderer.level, null);
+        Minecraft.getInstance().getItemRenderer().render(stack, TransformType.GROUND, false, matrixStack, buffer, combinedLight, combinedOverlay, model);
     }
 
     public void renderItemGlowing(ItemStack stack, TransformType transformType, MatrixStack matrixStack, IRenderTypeBuffer.Impl typeBuffer, int combinedOverlay, Integer alpha)
     {
         ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
         stack.getOrCreateTag().putByte(NBTUtil.GLOWING, (byte) 0);
-        IBakedModel model = itemRenderer.getItemModelWithOverrides(stack, renderDispatcher.world, null);
+        IBakedModel model = itemRenderer.getModel(stack, renderer.level, null);
         BufferBuilderTransparent.alpha = alpha;
-        itemRenderer.renderItem(daggerStack.get(), transformType, false, matrixStack, typeBuffer, 15728880, combinedOverlay, model);
-        typeBuffer.finish();
+        itemRenderer.render(daggerStack.get(), transformType, false, matrixStack, typeBuffer, 15728880, combinedOverlay, model);
+        typeBuffer.endBatch();
     }
 }

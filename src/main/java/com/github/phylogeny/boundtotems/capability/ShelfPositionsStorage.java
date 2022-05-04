@@ -24,7 +24,7 @@ public class ShelfPositionsStorage implements Capability.IStorage<IShelfPosition
         {
             dimensions.add(StringNBT.valueOf(dimension.toString()));
             ListNBT posSetList = new ListNBT();
-            posSet.forEach(pos -> posSetList.add(LongNBT.valueOf(pos.toLong())));
+            posSet.forEach(pos -> posSetList.add(LongNBT.valueOf(pos.asLong())));
             positions.add(posSetList);
         });
         CompoundNBT nbt = new CompoundNBT();
@@ -46,8 +46,8 @@ public class ShelfPositionsStorage implements Capability.IStorage<IShelfPosition
         for (int i = 0; i < dimensions.size(); i++)
         {
             Set<BlockPos> posSet = new HashSet<>();
-            positions.getList(i).forEach(element -> posSet.add(BlockPos.fromLong(((LongNBT) element).getLong())));
-            positionsTable.put(new ResourceLocation(dimensions.get(i).getString()), posSet);
+            positions.getList(i).forEach(element -> posSet.add(BlockPos.of(((LongNBT) element).getAsLong())));
+            positionsTable.put(new ResourceLocation(dimensions.get(i).getAsString()), posSet);
         }
         instance.setPositions(positionsTable);
     }

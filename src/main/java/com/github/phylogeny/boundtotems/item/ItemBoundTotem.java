@@ -18,7 +18,7 @@ public class ItemBoundTotem extends Item
 {
     public ItemBoundTotem(Properties properties)
     {
-        super(properties.rarity(Rarity.UNCOMMON).maxStackSize(1));
+        super(properties.rarity(Rarity.UNCOMMON).stacksTo(1));
     }
 
 //    @Override
@@ -34,20 +34,20 @@ public class ItemBoundTotem extends Item
 //    }
 
     @Override
-    public ITextComponent getDisplayName(ItemStack stack)
+    public ITextComponent getName(ItemStack stack)
     {
-        return super.getDisplayName(stack).deepCopy().appendString(" ").append(Items.TOTEM_OF_UNDYING.getDisplayName(stack));
+        return super.getName(stack).copy().append(" ").append(Items.TOTEM_OF_UNDYING.getName(stack));
     }
 
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected)
     {
-        if (!world.isRemote && entity instanceof LivingEntity)
+        if (!world.isClientSide && entity instanceof LivingEntity)
             NBTUtil.setBoundEntity(stack, (LivingEntity) entity);
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
     {
         NBTUtil.addBoundEntityInformation(stack, tooltip);
     }

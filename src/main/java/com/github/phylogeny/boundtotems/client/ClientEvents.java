@@ -47,7 +47,7 @@ public class ClientEvents
     @SubscribeEvent
     public static void updateGhosts(ClientTickEvent event)
     {
-        if (event.phase != Phase.START || getWorld() == null || Minecraft.getInstance().isGamePaused())
+        if (event.phase != Phase.START || getWorld() == null || Minecraft.getInstance().isPaused())
             return;
 
         ResourceLocation dimension = NBTUtil.getDimensionKey(getWorld());
@@ -70,12 +70,12 @@ public class ClientEvents
 
     public static void playSoundAtEntity(Entity entity, SoundEvent sound, float pitch)
     {
-        getWorld().playSound(entity.getPosX(), entity.getPosY(), entity.getPosZ(), sound, entity.getSoundCategory(), 1.0F, pitch, false);
+        getWorld().playLocalSound(entity.getX(), entity.getY(), entity.getZ(), sound, entity.getSoundSource(), 1.0F, pitch, false);
     }
 
     public static World getWorld()
     {
-        return Minecraft.getInstance().world;
+        return Minecraft.getInstance().level;
     }
 
     public static PlayerEntity getPlayer()
@@ -89,8 +89,8 @@ public class ClientEvents
         double x = knifePos.x - pos.getX();
         double y = knifePos.y - pos.getY();
         double z = knifePos.z - pos.getZ();
-        float pitch = getPlayer().rotationPitch;
-        float yaw = getPlayer().rotationYaw;
+        float pitch = getPlayer().xRot;
+        float yaw = getPlayer().yRot;
         float radToDeg = (float) Math.PI / 180F;
         double motionX = -MathHelper.sin(yaw * radToDeg) * MathHelper.cos(pitch * radToDeg);
         double motionY = -MathHelper.sin(pitch * radToDeg);
@@ -101,34 +101,34 @@ public class ClientEvents
         motionZ /= f;
         double inaccuracy = 0.75;
         double velocity = 0.05;
-        Random rand = getWorld().rand;
+        Random rand = getWorld().random;
         for (int i = 0; i < 4; i++)
-            Minecraft.getInstance().particles.addEffect(new DiggingParticleExtended(pos,
+            Minecraft.getInstance().particleEngine.add(new DiggingParticleExtended(pos,
                     x + rand.nextDouble() * 0.1 - 0.05,
                     y + rand.nextDouble() * 0.1 - 0.05,
                     z + rand.nextDouble() * 0.1 - 0.05,
                     -(motionX + rand.nextGaussian() * inaccuracy) * velocity,
                     -(motionY + rand.nextGaussian() * inaccuracy) * velocity,
                     -(motionZ + rand.nextGaussian() * inaccuracy) * velocity,
-                    state, true).multiplyParticleScaleBy(0.5F));
+                    state, true).scale(0.5F));
     }
 
     public static void addTotemShelfCarveEffects(BlockPos pos, int stageNext, Direction facing)
     {
-        BlockState stateNew = BlocksMod.TOTEM_SHELF.get().getDefaultState().with(BlockTotemShelf.STAGE, stageNext).with(BlockTotemShelf.FACING, facing);
+        BlockState stateNew = BlocksMod.TOTEM_SHELF.get().defaultBlockState().setValue(BlockTotemShelf.STAGE, stageNext).setValue(BlockTotemShelf.FACING, facing);
         SoundType sound = BlocksMod.TOTEM_SHELF.get().getSoundType(stateNew);
         boolean placing = stageNext >= 7;
-        ((ClientWorld) getWorld()).playSound(pos, placing ? sound.getPlaceSound() : SoundEvents.ITEM_AXE_STRIP, SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F, false);
+        ((ClientWorld) getWorld()).playLocalSound(pos, placing ? sound.getPlaceSound() : SoundEvents.AXE_STRIP, SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F, false);
         if (!placing)
         {
-            VoxelShape shapeOld = (stageNext == 0 ? VoxelShapes.fullCube() : BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew.with(BlockTotemShelf.STAGE, stageNext - 1)));
-            VoxelShape shapeRemoved = VoxelShapes.combine(BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew), shapeOld, IBooleanFunction.NOT_SAME);
+            VoxelShape shapeOld = (stageNext == 0 ? VoxelShapes.block() : BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew.setValue(BlockTotemShelf.STAGE, stageNext - 1)));
+            VoxelShape shapeRemoved = VoxelShapes.joinUnoptimized(BlocksMod.TOTEM_SHELF.get().SHAPES.get(stateNew), shapeOld, IBooleanFunction.NOT_SAME);
             addBlockDestroyEffects(pos, stateNew, shapeRemoved);
         }
     }
 
     /**
-     * Mimics {@link net.minecraft.client.particle.ParticleManager#addBlockDestroyEffects addBlockDestroyEffects}
+     * Mimics {@link net.minecraft.client.particle.ParticleManager#destroy destroy}
      * in ParticleManager to add destruction particles for an arbitrary VoxelShape.
      */
     private static void addBlockDestroyEffects(BlockPos pos, BlockState state, VoxelShape shape)
@@ -136,7 +136,7 @@ public class ClientEvents
         if (state.isAir(getWorld(), pos))
             return;
 
-        shape.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) ->
+        shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) ->
         {
             double dx = Math.min(1.0, maxX - minX);
             double dy = Math.min(2.0, maxY - minY);
@@ -156,7 +156,7 @@ public class ClientEvents
                         double xCoord = x * dx + minX;
                         double yCoord = y * dy + minY;
                         double zCoord = z * dz + minZ;
-                        Minecraft.getInstance().particles.addEffect(new DiggingParticleExtended(pos, xCoord, yCoord, zCoord, 0, 0, 0, state, false));
+                        Minecraft.getInstance().particleEngine.add(new DiggingParticleExtended(pos, xCoord, yCoord, zCoord, 0, 0, 0, state, false));
                     }
                 }
             }
@@ -168,13 +168,13 @@ public class ClientEvents
         public DiggingParticleExtended(BlockPos pos, double xCoord, double yCoord, double zCoord,
                 double xSpeed, double ySpeed, double zSpeed, BlockState state, boolean exactVelocity)
         {
-            super(Minecraft.getInstance().world, pos.getX() + xCoord, pos.getY() + yCoord, pos.getZ() + zCoord, xSpeed, ySpeed, zSpeed, state);
-            setBlockPos(pos);
+            super(Minecraft.getInstance().level, pos.getX() + xCoord, pos.getY() + yCoord, pos.getZ() + zCoord, xSpeed, ySpeed, zSpeed, state);
+            init(pos);
             if (exactVelocity)
             {
-                motionX = xSpeed;
-                motionY = ySpeed;
-                motionZ = zSpeed;
+                xd = xSpeed;
+                yd = ySpeed;
+                zd = zSpeed;
             }
         }
     }

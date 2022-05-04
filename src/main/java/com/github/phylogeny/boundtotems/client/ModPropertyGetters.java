@@ -44,7 +44,7 @@ public class ModPropertyGetters {
                 return 0F;
 
             if (world == null)
-                world = (ClientWorld) entity.world;
+                world = (ClientWorld) entity.level;
 
             return MathHelper.positiveModulo(getAngleNeedle(stack, world, entity), 1F);
         }
@@ -55,7 +55,7 @@ public class ModPropertyGetters {
             if (id != null) {
                 CompassData compassData = SHELF_POSITIONS.get(id);
                 if (compassData != null && !compassData.positions.isEmpty()) {
-                    double angleEntity = entity.rotationYaw;
+                    double angleEntity = entity.yRot;
                     angleEntity = MathHelper.positiveModulo(angleEntity / 360, 1);
                     double angleSpawn = getAngleToNearestBoundShelf(compassData.positions, entity) / (double) ((float) Math.PI * 2F);
                     return wobble(compassData, world, 0.5 - (angleEntity - 0.25 - angleSpawn));
@@ -85,24 +85,24 @@ public class ModPropertyGetters {
             double distanceShortest = Double.POSITIVE_INFINITY;
             for (Vector3d pos : positions)
             {
-                distance = entity.getPositionVec().squareDistanceTo(pos);
+                distance = entity.position().distanceToSqr(pos);
                 if (distance < distanceShortest)
                 {
                     distanceShortest = distance;
                     posNearest = pos;
                 }
             }
-            return Math.atan2(posNearest.getZ() - entity.getPosZ(), posNearest.getX() - entity.getPosX());
+            return Math.atan2(posNearest.z() - entity.getZ(), posNearest.x() - entity.getX());
         }
     }
 
     public static void register() {
-        ItemModelsProperties.registerProperty(ItemsMod.TOTEM_SHELF_ITEM.get(), new ResourceLocation("type"), (stack, world, entity) ->
+        ItemModelsProperties.register(ItemsMod.TOTEM_SHELF_ITEM.get(), new ResourceLocation("type"), (stack, world, entity) ->
                 stack.hasTag() && stack.getTag().contains(NBTUtil.GLOWING) ? 1 : 0);
 
-        ItemModelsProperties.registerProperty(ItemsMod.RITUAL_DAGGER.get(), new ResourceLocation("state"), (stack, world, entity) ->
+        ItemModelsProperties.register(ItemsMod.RITUAL_DAGGER.get(), new ResourceLocation("state"), (stack, world, entity) ->
                 stack.hasTag() && stack.getTag().contains(NBTUtil.GLOWING) ? 3 : ItemRitualDagger.State.get(stack).ordinal());
 
-        ItemModelsProperties.registerProperty(ItemsMod.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassRotationPropertyGetter());
+        ItemModelsProperties.register(ItemsMod.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassRotationPropertyGetter());
     }
 }

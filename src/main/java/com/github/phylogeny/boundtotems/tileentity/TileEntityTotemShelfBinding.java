@@ -41,14 +41,14 @@ public class TileEntityTotemShelfBinding extends TileEntityTotemShelf implements
         finally
         {
             if (cooling == null)
-                cooling = super.getBlockState().get(BlockTotemShelf.BINDING_STATE) == BindingState.COOLING;
+                cooling = super.getBlockState().getValue(BlockTotemShelf.BINDING_STATE) == BindingState.COOLING;
         }
     }
 
     @Override
-    public void updateContainingBlockInfo()
+    public void clearCache()
     {
-        super.updateContainingBlockInfo();
+        super.clearCache();
         cooling = null;
     }
 }

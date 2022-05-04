@@ -52,19 +52,19 @@ public class NBTUtil
 
     public static UUID readUniqueId(CompoundNBT nbt)
     {
-        return nbt.hasUniqueId(ID) ? nbt.getUniqueId(ID) : Util.DUMMY_UUID;
+        return nbt.hasUUID(ID) ? nbt.getUUID(ID) : Util.NIL_UUID;
     }
 
     public static CompoundNBT writeUniqueId(UUID id)
     {
         CompoundNBT nbt = new CompoundNBT();
-        nbt.putUniqueId(ID, id);
+        nbt.putUUID(ID, id);
         return nbt;
     }
 
     public static void setStackId(ItemStack stack) {
         if (!stack.getOrCreateTag().contains(STACK_ID))
-            stack.setTagInfo(STACK_ID, writeUniqueId(UUID.randomUUID()));
+            stack.addTagElement(STACK_ID, writeUniqueId(UUID.randomUUID()));
     }
 
     @Nullable
@@ -79,7 +79,7 @@ public class NBTUtil
 
     @Nullable
     private static UUID getId(ItemStack stack, String key) {
-        CompoundNBT nbt = stack.getChildTag(key);
+        CompoundNBT nbt = stack.getTagElement(key);
         return nbt == null ? null : readUniqueId(nbt);
     }
 
@@ -89,7 +89,7 @@ public class NBTUtil
         UUID id = getBoundEntityId(stack);
         if (id != null)
         {
-            Entity entity = world.getEntityByUuid(id);
+            Entity entity = world.getEntity(id);
             if (entity != null)
                 return (LivingEntity) entity;
         }
@@ -99,13 +99,13 @@ public class NBTUtil
     @Nullable
     public static String getBoundEntityName(ItemStack stack)
     {
-        CompoundNBT nbt = stack.getChildTag(BOUND_ENTITY);
+        CompoundNBT nbt = stack.getTagElement(BOUND_ENTITY);
         return nbt == null ? null : nbt.getString(ENTITY_NAME);
     }
 
     public static ItemStack copyBoundEntity(ItemStack source, ItemStack target)
     {
-        CompoundNBT nbt = source.getChildTag(BOUND_ENTITY);
+        CompoundNBT nbt = source.getTagElement(BOUND_ENTITY);
         if (nbt != null)
             setBoundEntity(target, readUniqueId(nbt), nbt.getString(ENTITY_NAME));
 
@@ -117,7 +117,7 @@ public class NBTUtil
         if (hasBoundEntity(stack))
             return false;
 
-        setBoundEntity(stack, entity.getUniqueID(), entity.getDisplayName().getString());
+        setBoundEntity(stack, entity.getUUID(), entity.getDisplayName().getString());
         return true;
     }
 
@@ -125,13 +125,13 @@ public class NBTUtil
     {
         CompoundNBT nbt = writeUniqueId(entityId);
         nbt.putString(ENTITY_NAME, entityDisplayName);
-        stack.setTagInfo(BOUND_ENTITY, nbt);
+        stack.addTagElement(BOUND_ENTITY, nbt);
     }
 
     public static boolean matchesBoundEntity(ItemStack stack, LivingEntity entity)
     {
         UUID entityId = getBoundEntityId(stack);
-        return entityId != null && entity.getUniqueID().equals(entityId);
+        return entityId != null && entity.getUUID().equals(entityId);
     }
 
     public static void addBoundEntityInformation(ItemStack stack, List<ITextComponent> tooltip)
@@ -152,22 +152,22 @@ public class NBTUtil
 
     public static void teleportEntity(ItemStack stack, LivingEntity entity)
     {
-        CompoundNBT nbt = stack.getChildTag(BOUND_LOCATION);
+        CompoundNBT nbt = stack.getTagElement(BOUND_LOCATION);
         if (nbt != null)
             EntityUtil.teleportEntity(entity, getDimension(new ResourceLocation(nbt.getString(DIMENSION))), readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
     }
 
     public static void copyBoundLocation(ItemStack source, ItemStack target)
     {
-        CompoundNBT nbt = source.getChildTag(BOUND_LOCATION);
+        CompoundNBT nbt = source.getTagElement(BOUND_LOCATION);
         if (nbt != null)
             setBoundLocation(target, readVec(nbt), nbt.getString(DIMENSION), nbt.getFloat(PITCH), nbt.getFloat(YAW));
     }
 
     public static void setBoundLocation(ItemStack stack, LivingEntity entity)
     {
-        setBoundLocation(stack, entity.getPositionVec(),
-                getDimensionKey(entity.getEntityWorld()).toString(), entity.rotationPitch, entity.rotationYaw);
+        setBoundLocation(stack, entity.position(),
+                getDimensionKey(entity.getCommandSenderWorld()).toString(), entity.xRot, entity.yRot);
     }
 
     public static void setBoundLocation(ItemStack stack, Vector3d pos, String dimension, float pitch, float yaw)
@@ -176,17 +176,17 @@ public class NBTUtil
         nbt.putString(DIMENSION, dimension);
         nbt.putFloat(PITCH, pitch);
         nbt.putFloat(YAW, yaw);
-        stack.setTagInfo(BOUND_LOCATION, nbt);
+        stack.addTagElement(BOUND_LOCATION, nbt);
     }
 
     public static RegistryKey<World> getDimension(ResourceLocation key)
     {
-        return RegistryKey.getOrCreateKey(Registry.WORLD_KEY, key);
+        return RegistryKey.create(Registry.DIMENSION_REGISTRY, key);
     }
 
     public static ResourceLocation getDimensionKey(World world)
     {
-        return world.getDimensionKey().getLocation();
+        return world.dimension().location();
     }
 
     private static Vector3d readVec(CompoundNBT nbt)
@@ -205,7 +205,7 @@ public class NBTUtil
 
     public static void addBoundLocationInformation(ItemStack stack, List<ITextComponent> tooltip, boolean fullDimensionName)
     {
-        CompoundNBT nbt = stack.getChildTag(BOUND_LOCATION);
+        CompoundNBT nbt = stack.getTagElement(BOUND_LOCATION);
         if (nbt == null)
             return;
 
