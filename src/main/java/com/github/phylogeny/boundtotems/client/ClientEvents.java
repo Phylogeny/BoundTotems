@@ -76,21 +76,11 @@ public class ClientEvents {
         return Minecraft.getInstance().player;
     }
 
-    public static void addKnifeRemovalEffects(Vector3d knifePos, BlockState state) {
+    public static void addKnifeRemovalEffects(Vector3d knifePos, Vector3d particleMotion, BlockState state) {
         BlockPos pos = new BlockPos(knifePos);
         double x = knifePos.x - pos.getX();
         double y = knifePos.y - pos.getY();
         double z = knifePos.z - pos.getZ();
-        float pitch = getPlayer().xRot;
-        float yaw = getPlayer().yRot;
-        float radToDeg = (float) Math.PI / 180F;
-        double motionX = -MathHelper.sin(yaw * radToDeg) * MathHelper.cos(pitch * radToDeg);
-        double motionY = -MathHelper.sin(pitch * radToDeg);
-        double motionZ = MathHelper.cos(yaw * radToDeg) * MathHelper.cos(pitch * radToDeg);
-        float f = MathHelper.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
-        motionX /= f;
-        motionY /= f;
-        motionZ /= f;
         double inaccuracy = 0.75;
         double velocity = 0.05;
         Random rand = getWorld().random;
@@ -99,9 +89,9 @@ public class ClientEvents {
                     x + rand.nextDouble() * 0.1 - 0.05,
                     y + rand.nextDouble() * 0.1 - 0.05,
                     z + rand.nextDouble() * 0.1 - 0.05,
-                    -(motionX + rand.nextGaussian() * inaccuracy) * velocity,
-                    -(motionY + rand.nextGaussian() * inaccuracy) * velocity,
-                    -(motionZ + rand.nextGaussian() * inaccuracy) * velocity,
+                    -(particleMotion.x() + rand.nextGaussian() * inaccuracy) * velocity,
+                    -(particleMotion.y() + rand.nextGaussian() * inaccuracy) * velocity,
+                    -(particleMotion.z() + rand.nextGaussian() * inaccuracy) * velocity,
                     state, true).scale(0.5F));
     }
 

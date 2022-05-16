@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -19,29 +20,39 @@ import java.util.function.Supplier;
 public class PacketAddOrRemoveKnife {
     private final BlockPos pos;
     private final ItemStack knifeStack;
-    private final Vector3d knifePos, knifeDirection;
+    private final Vector3d knifePos, direction;
 
-    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack) {
-        this(pos, knifePos, knifeStack, null);
+    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, PlayerEntity player) {
+        this(pos, knifePos, ItemStack.EMPTY, getParticleMotion(player));
     }
 
-    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack, Vector3d knifeDirection) {
+    public PacketAddOrRemoveKnife(BlockPos pos, Vector3d knifePos, ItemStack knifeStack, Vector3d direction) {
         this.pos = pos;
         this.knifePos = knifePos;
         this.knifeStack = knifeStack;
-        this.knifeDirection = knifeDirection;
+        this.direction = direction;
     }
 
     public static void encode(PacketAddOrRemoveKnife msg, PacketBuffer buf) {
         buf.writeBlockPos(msg.pos);
         PacketBufferUtil.writeVec(buf, msg.knifePos);
         buf.writeItem(msg.knifeStack);
-        PacketBufferUtil.writeNullableObject(buf, msg.knifeDirection, o -> PacketBufferUtil.writeVec(buf, o));
+        PacketBufferUtil.writeVec(buf, msg.direction);
+    }
+
+    private static Vector3d getParticleMotion(PlayerEntity player) {
+        float pitch = player.xRot;
+        float yaw = player.yRot;
+        float radToDeg = (float) Math.PI / 180F;
+        double motionX = -MathHelper.sin(yaw * radToDeg) * MathHelper.cos(pitch * radToDeg);
+        double motionY = -MathHelper.sin(pitch * radToDeg);
+        double motionZ = MathHelper.cos(yaw * radToDeg) * MathHelper.cos(pitch * radToDeg);
+        float f = MathHelper.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+        return new Vector3d(motionX / f, motionY / f, motionZ / f);
     }
 
     public static PacketAddOrRemoveKnife decode(PacketBuffer buf) {
-        return new PacketAddOrRemoveKnife(buf.readBlockPos(), PacketBufferUtil.readVec(buf), buf.readItem(),
-                PacketBufferUtil.readNullableObject(buf, PacketBufferUtil::readVec));
+        return new PacketAddOrRemoveKnife(buf.readBlockPos(), PacketBufferUtil.readVec(buf), buf.readItem(), PacketBufferUtil.readVec(buf));
     }
 
     public static class Handler {
@@ -55,10 +66,10 @@ public class PacketAddOrRemoveKnife {
                 if (te instanceof TileEntityTotemShelf) {
                     BlockState state = player.level.getBlockState(msg.pos);
                     if (state.getBlock() instanceof BlockTotemShelf) {
-                        if (msg.knifeDirection != null)
-                            ((TileEntityTotemShelf) te).addKnife(msg.knifePos, msg.knifeDirection, msg.knifeStack);
+                        if (!msg.knifeStack.isEmpty())
+                            ((TileEntityTotemShelf) te).addKnife(msg.knifePos, msg.direction, msg.knifeStack);
                         else {
-                            ClientEvents.addKnifeRemovalEffects(msg.knifePos, state);
+                            ClientEvents.addKnifeRemovalEffects(msg.knifePos, msg.direction, state);
                             ((TileEntityTotemShelf) te).removeKnife();
                         }
                     }
