@@ -178,7 +178,7 @@ public class BlockEntityTotemShelf extends BlockEntity {
                     world.playSound(null, pos, SoundEvents.PLAYER_ATTACK_WEAK, SoundSource.MASTER, 0.25F, 2);
                     Vec3 vec = knifePos.add(knifeDirection.scale(-0.05));
                     removeKnife();
-                    PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, vec, knife), world, vec);
+                    PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, vec, player), world, vec);
                 }
                 return true;
             }
