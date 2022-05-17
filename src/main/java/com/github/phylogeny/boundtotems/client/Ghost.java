@@ -1,6 +1,7 @@
 package com.github.phylogeny.boundtotems.client;
 
 import com.github.phylogeny.boundtotems.util.ReflectionUtil;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -17,7 +18,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import javax.annotation.Nullable;
@@ -68,9 +68,8 @@ public class Ghost {
         return target.subtract(0, entity.getBbHeight() * (entity instanceof ItemEntity ? 1.3 : 0.5), 0);
     }
 
-    public void render(RenderWorldLastEvent event) {
+    public void render(PoseStack poseStack, float partialTicks) {
         MultiBufferSource.BufferSource typeBuffer = BufferBuilderTransparent.getRenderTypeBuffer();
-        float partialTicks = event.getPartialTicks();
         Vec3 pos = this.pos.add(motion.scale(partialTicks));
         Vec3 posCamera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         double dx = pos.x - posCamera.x;
@@ -82,7 +81,7 @@ public class Ghost {
         rendererDispatcher.setRenderShadow(false);
         int packedLight = 15728880;
         if (entity instanceof ItemEntity)
-            rendererDispatcher.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
+            rendererDispatcher.render(entity, dx, dy, dz, f, partialTicks, poseStack, typeBuffer, packedLight);
         else {
             EntityRenderer<? super Entity> renderer = rendererDispatcher.getRenderer(entity);
             if (renderer instanceof LivingEntityRenderer) {
@@ -91,7 +90,7 @@ public class Ghost {
                 ReflectionUtil.setValue(Ghost.LAYERS, rendererLiving, new ArrayList<>());
                 RenderType renderType = rendererLiving.getModel().renderType(rendererLiving.getTextureLocation(entity));
                 if (entity instanceof Player && !renderType.toString().contains("cutout"))
-                    rendererDispatcher.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
+                    rendererDispatcher.render(entity, dx, dy, dz, f, partialTicks, poseStack, typeBuffer, packedLight);
                 else {
                     ClientPacketListener connection = Minecraft.getInstance().getConnection();
                     if (connection != null) {
@@ -106,7 +105,7 @@ public class Ghost {
                                 leashHolder = mob.getLeashHolder();
                                 mob.setDelayedLeashHolderId(0);
                             }
-                            rendererDispatcher.render(entity, dx, dy, dz, f, partialTicks, event.getMatrixStack(), typeBuffer, packedLight);
+                            rendererDispatcher.render(entity, dx, dy, dz, f, partialTicks, poseStack, typeBuffer, packedLight);
                             if (leashHolder != null)
                                 ((Mob) entity).setLeashedTo(leashHolder, false);
 

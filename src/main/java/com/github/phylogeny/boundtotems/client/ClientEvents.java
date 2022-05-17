@@ -65,7 +65,7 @@ public class ClientEvents {
     public static void renderGhosts(RenderWorldLastEvent event) {
         List<Ghost> ghosts = GHOSTS.get(NBTUtil.getDimensionKey(getWorld()));
         if (ghosts != null)
-            ghosts.forEach(ghost -> ghost.render(event));
+            ghosts.forEach(ghost -> ghost.render(event.getMatrixStack(), event.getPartialTicks()));
     }
 
     public static void playSoundAtEntity(Entity entity, SoundEvent sound, float pitch) {
