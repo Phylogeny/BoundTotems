@@ -161,8 +161,8 @@ public class BlockEntityTotemShelf extends BlockEntity {
         if (result != null) {
             if (state.getValue(BlockTotemShelf.BINDING_STATE) == BindingState.NOT_BOUND && knife.isEmpty() && stack.getItem() instanceof ItemRitualDagger
                     && NBTUtil.hasBoundEntity(stack) && isInterior(result.getLocation())) {
-                ownerId = player.getUUID();
                 if (!world.isClientSide) {
+                    ownerId = player.getUUID();
                     addKnife(result.getLocation(), player.getLookAngle(), stack);
                     player.setItemInHand(hand, ItemStack.EMPTY);
                     world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundSource.MASTER, 1, 1);
@@ -199,7 +199,8 @@ public class BlockEntityTotemShelf extends BlockEntity {
 
     @Nullable
     public static VoxelShape getObservedKnifeShape(BlockPos pos, BlockHitResult target, Vec3 knifePos) {
-        return knifePos == null ? null : getHitShape(BlockTotemShelf.SHAPE_KNIFE.move(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ()), pos, target);
+        return knifePos == null ? null : getHitShape(BlockTotemShelf.SHAPE_KNIFE
+                .move(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ()), pos, target);
     }
 
     @Nullable
@@ -238,7 +239,8 @@ public class BlockEntityTotemShelf extends BlockEntity {
             return;
 
         LivingEntity entity = NBTUtil.getBoundEntity(knife, serverWorld);
-        if (entity == null || entity.distanceToSqr(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()) > Math.pow(Config.SERVER.maxDistanceToShelf.get(), 2)) {
+        if (entity == null || entity.distanceToSqr(worldPosition.getX(), worldPosition.getY(),
+                worldPosition.getZ()) > Math.pow(Config.SERVER.maxDistanceToShelf.get(), 2)) {
             charShelf(serverWorld, worldPosition);
             return;
         }
@@ -269,7 +271,9 @@ public class BlockEntityTotemShelf extends BlockEntity {
 
         positions.add(worldPosition);
         positionTable.put(dimension, positions);
-        PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F, level.getBlockState(worldPosition).getCollisionShape(level, worldPosition).bounds().move(worldPosition).getCenter(), null), entity);
+        PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F,
+                level.getBlockState(worldPosition).getCollisionShape(level, worldPosition)
+                        .bounds().move(worldPosition).getCenter(), null), entity);
     }
 
     private void charShelf(ServerLevel world, BlockPos pos) {
