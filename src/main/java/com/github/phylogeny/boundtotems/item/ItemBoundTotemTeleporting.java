@@ -24,11 +24,12 @@ public class ItemBoundTotemTeleporting extends ItemBoundTotem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!world.isClientSide) {
+        InteractionResult result = player.isCrouching() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        if (!world.isClientSide && result == InteractionResult.SUCCESS) {
             LivingEntity entity = EntityUtil.rayTraceEntities(world, player, LivingEntity.class);
             NBTUtil.setBoundLocation(stack, entity != null ? entity : player);
         }
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+        return new InteractionResultHolder<>(result, stack);
     }
 
     @Override
