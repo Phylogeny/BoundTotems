@@ -13,16 +13,16 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.fmllegacy.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +40,10 @@ public class JustEnoughItemsPlugin implements IModPlugin {
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         ItemStack stackBloodyKnife = new ItemStack(ItemsMod.RITUAL_DAGGER.get());
-        NBTUtil.setBoundEntity(stackBloodyKnife, MathHelper.createInsecureUUID(), I18n.get(LangUtil.join(InWorldRecipeCategory.LANG_KEY_PREFIX, "entity_name")));
-        CompoundNBT nbtBloody = stackBloodyKnife.getTag();
+        NBTUtil.setBoundEntity(stackBloodyKnife, Mth.createInsecureUUID(), I18n.get(LangUtil.join(InWorldRecipeCategory.LANG_KEY_PREFIX, "entity_name")));
+        CompoundTag nbtBloody = stackBloodyKnife.getTag();
         assert nbtBloody != null;
-        CompoundNBT nbtBound = nbtBloody.copy();
+        CompoundTag nbtBound = nbtBloody.copy();
         NBTUtil.bindKnife(nbtBound);
         ItemStack stackBoundKnife = stackBloodyKnife.copy();
         stackBloodyKnife.setTag(nbtBloody);
@@ -79,7 +79,7 @@ public class JustEnoughItemsPlugin implements IModPlugin {
     }
 
     private static <I extends Item> void addItemInfo(IRecipeRegistration registration, RegistryObject<I> item, Object... parameters) {
-        registration.addIngredientInfo(new ItemStack(item.get()), VanillaTypes.ITEM, new TranslationTextComponent(LangUtil.join(ITEM_INFO_LANG_KEY, Objects.requireNonNull(item.get().getRegistryName()).getPath()), parameters));
+        registration.addIngredientInfo(new ItemStack(item.get()), VanillaTypes.ITEM, new TranslatableComponent(LangUtil.join(ITEM_INFO_LANG_KEY, Objects.requireNonNull(item.get().getRegistryName()).getPath()), parameters));
     }
 
     @Override

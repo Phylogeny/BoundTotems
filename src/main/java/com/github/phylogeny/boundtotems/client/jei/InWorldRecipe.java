@@ -6,11 +6,11 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.ITickTimer;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.IItemProvider;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,7 +24,7 @@ public class InWorldRecipe {
     private final List<ResourceLocation> slides;
     private ITickTimer timer;
 
-    protected InWorldRecipe(String name, IGuiHelper guiHelper, int slideCount, IItemProvider... inputs) {
+    protected InWorldRecipe(String name, IGuiHelper guiHelper, int slideCount, ItemLike... inputs) {
         this(name, guiHelper, slideCount, itemsToStacks(inputs));
     }
 
@@ -43,7 +43,7 @@ public class InWorldRecipe {
         return this;
     }
 
-    public InWorldRecipe setOutputs(IItemProvider... outputs) {
+    public InWorldRecipe setOutputs(ItemLike... outputs) {
         return setOutputs(itemsToStacks(outputs));
     }
 
@@ -52,13 +52,13 @@ public class InWorldRecipe {
         return this;
     }
 
-    public InWorldRecipe setAdditionalInputs(IItemProvider... inputs) {
+    public InWorldRecipe setAdditionalInputs(ItemLike... inputs) {
         List<List<ItemStack>> inputsAdditional = Arrays.stream(inputs).map(provider -> Collections.singletonList(new ItemStack(provider))).collect(Collectors.toList());
         this.inputs = Stream.of(this.inputs, inputsAdditional).flatMap(Collection::stream).collect(Collectors.toList());
         return this;
     }
 
-    private static ItemStack[] itemsToStacks(IItemProvider[] inputs) {
+    private static ItemStack[] itemsToStacks(ItemLike[] inputs) {
         return Arrays.stream(inputs).map(ItemStack::new).toArray(ItemStack[]::new);
     }
 
@@ -71,7 +71,7 @@ public class InWorldRecipe {
         return slides.get(timer == null ? 0 : timer.getValue());
     }
 
-    public List<ITextComponent> getTooltip() {
-        return Collections.singletonList(new TranslationTextComponent(langKey, langParameters));
+    public List<Component> getTooltip() {
+        return Collections.singletonList(new TranslatableComponent(langKey, langParameters));
     }
 }

@@ -3,11 +3,11 @@ package com.github.phylogeny.boundtotems.init;
 import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.block.BlockStrippedOakLog;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
-import net.minecraft.block.Block;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraftforge.fmllegacy.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 

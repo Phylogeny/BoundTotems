@@ -3,15 +3,15 @@ package com.github.phylogeny.boundtotems.client;
 import com.github.phylogeny.boundtotems.init.ItemsMod;
 import com.github.phylogeny.boundtotems.item.ItemRitualDagger;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.IItemPropertyGetter;
-import net.minecraft.item.ItemModelsProperties;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ModPropertyGetters {
     private static final Map<UUID, CompassData> SHELF_POSITIONS = new ConcurrentHashMap<>();
 
-    public static void addShelfPositions(UUID id, Set<Vector3d> positions) {
+    public static void addShelfPositions(UUID id, Set<Vec3> positions) {
         if (!SHELF_POSITIONS.containsKey(id))
             SHELF_POSITIONS.put(id, new CompassData());
 
@@ -30,31 +30,31 @@ public class ModPropertyGetters {
     }
 
     private static class CompassData {
-        private Set<Vector3d> positions;
+        private Set<Vec3> positions;
         private double rotation;
         private double rota;
         private long lastUpdateTick;
     }
 
-    private static class CompassRotationPropertyGetter extends CompassData implements IItemPropertyGetter {
+    private static class CompassRotationPropertyGetter extends CompassData implements ClampedItemPropertyFunction {
         @Override
-        public float call(ItemStack stack, @Nullable ClientWorld world, @Nullable LivingEntity entity) {
+        public float unclampedCall(ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity, int seed) {
             if (entity == null)
                 return 0F;
 
             if (world == null)
-                world = (ClientWorld) entity.level;
+                world = (ClientLevel) entity.level;
 
-            return MathHelper.positiveModulo(getAngleNeedle(stack, world, entity), 1F);
+            return Mth.positiveModulo(getAngleNeedle(stack, world, entity), 1F);
         }
 
-        private float getAngleNeedle(ItemStack stack, World world, LivingEntity entity) {
+        private float getAngleNeedle(ItemStack stack, Level world, LivingEntity entity) {
             UUID id = NBTUtil.getStackId(stack);
             if (id != null) {
                 CompassData compassData = SHELF_POSITIONS.get(id);
                 if (compassData != null && !compassData.positions.isEmpty()) {
-                    double angleEntity = entity.yRot;
-                    angleEntity = MathHelper.positiveModulo(angleEntity / 360, 1);
+                    double angleEntity = entity.getYRot();
+                    angleEntity = Mth.positiveModulo(angleEntity / 360, 1);
                     double angleSpawn = getAngleToNearestBoundShelf(compassData.positions, entity) / (double) ((float) Math.PI * 2F);
                     return wobble(compassData, world, 0.5 - (angleEntity - 0.25 - angleSpawn));
                 }
@@ -62,23 +62,23 @@ public class ModPropertyGetters {
             return wobble(this, world, Math.random());
         }
 
-        private float wobble(CompassData compassData, World world, double angle) {
+        private float wobble(CompassData compassData, Level world, double angle) {
             if (world.getGameTime() != compassData.lastUpdateTick) {
                 compassData.lastUpdateTick = world.getGameTime();
                 double delta = angle - compassData.rotation;
-                delta = MathHelper.positiveModulo(delta + 0.5, 1) - 0.5;
+                delta = Mth.positiveModulo(delta + 0.5, 1) - 0.5;
                 compassData.rota += delta * 0.1;
                 compassData.rota *= 0.8;
-                compassData.rotation = MathHelper.positiveModulo(compassData.rotation + compassData.rota, 1);
+                compassData.rotation = Mth.positiveModulo(compassData.rotation + compassData.rota, 1);
             }
             return (float) compassData.rotation;
         }
 
-        private double getAngleToNearestBoundShelf(Set<Vector3d> positions, LivingEntity entity) {
-            Vector3d posNearest = null;
+        private double getAngleToNearestBoundShelf(Set<Vec3> positions, LivingEntity entity) {
+            Vec3 posNearest = null;
             double distance;
             double distanceShortest = Double.POSITIVE_INFINITY;
-            for (Vector3d pos : positions) {
+            for (Vec3 pos : positions) {
                 distance = entity.position().distanceToSqr(pos);
                 if (distance < distanceShortest) {
                     distanceShortest = distance;
@@ -90,12 +90,12 @@ public class ModPropertyGetters {
     }
 
     public static void register() {
-        ItemModelsProperties.register(ItemsMod.TOTEM_SHELF_ITEM.get(), new ResourceLocation("type"), (stack, world, entity) ->
+        ItemProperties.register(ItemsMod.TOTEM_SHELF_ITEM.get(), new ResourceLocation("type"), (stack, world, entity, seed) ->
                 stack.hasTag() && stack.getTag().contains(NBTUtil.GLOWING) ? 1 : 0);
 
-        ItemModelsProperties.register(ItemsMod.RITUAL_DAGGER.get(), new ResourceLocation("state"), (stack, world, entity) ->
+        ItemProperties.register(ItemsMod.RITUAL_DAGGER.get(), new ResourceLocation("state"), (stack, world, entity, seed) ->
                 stack.hasTag() && stack.getTag().contains(NBTUtil.GLOWING) ? 3 : ItemRitualDagger.State.get(stack).ordinal());
 
-        ItemModelsProperties.register(ItemsMod.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassRotationPropertyGetter());
+        ItemProperties.register(ItemsMod.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassRotationPropertyGetter());
     }
 }

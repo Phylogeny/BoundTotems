@@ -3,13 +3,13 @@ package com.github.phylogeny.boundtotems.crafting;
 import com.github.phylogeny.boundtotems.item.ItemBoundTotem;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import com.google.gson.JsonObject;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.ShapedRecipe;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.level.Level;
 
 import java.util.UUID;
 
@@ -20,12 +20,12 @@ public class RecipeTotemBoundTeleporting extends ShapedRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInventory inv) {
+    public ItemStack assemble(CraftingContainer inv) {
         return RecipeTotemBound.transferBoundTotemNBT(inv, super.assemble(inv), totem -> 1);
     }
 
     @Override
-    public boolean matches(CraftingInventory inv, World world) {
+    public boolean matches(CraftingContainer inv, Level world) {
         boolean matches = super.matches(inv, world);
         if (matches) {
             // Ensure that if the recipe contains multiple bound totems, they all have the same bound entity

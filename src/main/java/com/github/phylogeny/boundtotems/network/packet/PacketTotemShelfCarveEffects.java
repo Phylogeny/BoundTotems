@@ -2,11 +2,11 @@ package com.github.phylogeny.boundtotems.network.packet;
 
 import com.github.phylogeny.boundtotems.client.ClientEvents;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.fmllegacy.network.NetworkDirection;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -21,13 +21,13 @@ public class PacketTotemShelfCarveEffects {
         this.facing = facing;
     }
 
-    public static void encode(PacketTotemShelfCarveEffects msg, PacketBuffer buf) {
+    public static void encode(PacketTotemShelfCarveEffects msg, FriendlyByteBuf buf) {
         buf.writeInt(msg.stageNext);
         buf.writeBlockPos(msg.pos);
         buf.writeInt(msg.facing.get3DDataValue());
     }
 
-    public static PacketTotemShelfCarveEffects decode(PacketBuffer buf) {
+    public static PacketTotemShelfCarveEffects decode(FriendlyByteBuf buf) {
         return new PacketTotemShelfCarveEffects(buf.readInt(), buf.readBlockPos(), Direction.from3DDataValue(buf.readInt()));
     }
 

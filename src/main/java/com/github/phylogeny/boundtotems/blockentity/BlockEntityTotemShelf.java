@@ -1,4 +1,4 @@
-package com.github.phylogeny.boundtotems.tileentity;
+package com.github.phylogeny.boundtotems.blockentity;
 
 import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.Config;
@@ -6,7 +6,7 @@ import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf.BindingState;
 import com.github.phylogeny.boundtotems.block.PositionsTotemShelf;
 import com.github.phylogeny.boundtotems.init.SoundsMod;
-import com.github.phylogeny.boundtotems.init.TileEntitiesMod;
+import com.github.phylogeny.boundtotems.init.BlockEntitiesMod;
 import com.github.phylogeny.boundtotems.item.ItemBoundTotem;
 import com.github.phylogeny.boundtotems.item.ItemRitualDagger;
 import com.github.phylogeny.boundtotems.network.PacketNetwork;
@@ -15,29 +15,32 @@ import com.github.phylogeny.boundtotems.network.packet.PacketAddOrRemoveKnife;
 import com.github.phylogeny.boundtotems.util.CapabilityUtil;
 import com.github.phylogeny.boundtotems.util.EntityUtil;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.state.properties.DoubleBlockHalf;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -48,19 +51,19 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
-public class TileEntityTotemShelf extends TileEntity {
+public class BlockEntityTotemShelf extends BlockEntity {
     public static final int SIZE_INVENTORY = 6;
     private final LazyOptional<ItemStackHandler> inventory = LazyOptional.of(this::createInventory);
     protected ItemStack knife = ItemStack.EMPTY;
-    private Vector3d knifePos, knifeDirection;
+    private Vec3 knifePos, knifeDirection;
     private UUID boundEntityId, ownerId;
 
-    public TileEntityTotemShelf() {
-        super(TileEntitiesMod.TOTEM_SHELF.get());
+    public BlockEntityTotemShelf(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
-    public TileEntityTotemShelf(TileEntityType<?> tileEntityType) {
-        super(tileEntityType);
+    public BlockEntityTotemShelf(BlockPos pos, BlockState state) {
+        this(BlockEntitiesMod.TOTEM_SHELF.get(), pos, state);
     }
 
     public ItemStack getKnife() {
@@ -73,17 +76,17 @@ public class TileEntityTotemShelf extends TileEntity {
     }
 
     @Nullable
-    public Vector3d getKnifePos() {
+    public Vec3 getKnifePos() {
         return knifePos == null ? null : knifePos.add(knifeDirection.scale(-0.15));
     }
 
     @Nullable
-    public Vector3d getKnifeDirection() {
+    public Vec3 getKnifeDirection() {
         return knifeDirection;
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT nbt) {
+    public CompoundTag save(CompoundTag nbt) {
         super.save(nbt);
         NBTUtil.writeObjectToSubTag(nbt, NBTUtil.KNIFE, nbtSub -> knife.save(nbtSub));
         writeVec(nbt, knifePos, NBTUtil.POSITION);
@@ -94,7 +97,7 @@ public class TileEntityTotemShelf extends TileEntity {
         return nbt;
     }
 
-    private void writeVec(CompoundNBT nbt, Vector3d vec, String key) {
+    private void writeVec(CompoundTag nbt, Vec3 vec, String key) {
         NBTUtil.writeNullableObject(vec, v -> NBTUtil.writeObjectToSubTag(nbt, key, nbtSub -> {
             nbtSub.putDouble(NBTUtil.X, v.x);
             nbtSub.putDouble(NBTUtil.Y, v.y);
@@ -103,23 +106,23 @@ public class TileEntityTotemShelf extends TileEntity {
     }
 
     @Override
-    public void load(BlockState state, CompoundNBT nbt) {
-        super.load(state, nbt);
+    public void load(CompoundTag nbt) {
+        super.load(nbt);
         knife = NBTUtil.readObjectFromSubTag(nbt, NBTUtil.KNIFE, ItemStack::of);
         knifePos = readVec(nbt, NBTUtil.POSITION);
         knifeDirection = readVec(nbt, NBTUtil.DIRECTION);
         boundEntityId = NBTUtil.readNullableObject(nbt, "bound_entity_id", key -> NBTUtil.readUniqueId(nbt.getCompound(key)));
         ownerId = NBTUtil.readNullableObject(nbt, "owner_id", key -> NBTUtil.readUniqueId(nbt.getCompound(key)));
         if (nbt.contains("items"))
-            getInventory().deserializeNBT((CompoundNBT) nbt.get("items"));
+            getInventory().deserializeNBT((CompoundTag) nbt.get("items"));
     }
 
-    private Vector3d readVec(CompoundNBT nbt, String key) {
+    private Vec3 readVec(CompoundTag nbt, String key) {
         return NBTUtil.readNullableObject(nbt, key, k -> NBTUtil.readObjectFromSubTag(nbt, k, nbtSub ->
-                new Vector3d(nbtSub.getDouble(NBTUtil.X), nbtSub.getDouble(NBTUtil.Y), nbtSub.getDouble(NBTUtil.Z))));
+                new Vec3(nbtSub.getDouble(NBTUtil.X), nbtSub.getDouble(NBTUtil.Y), nbtSub.getDouble(NBTUtil.Z))));
     }
 
-    private boolean isInterior(@Nullable Vector3d hit) {
+    private boolean isInterior(@Nullable Vec3 hit) {
         return hit != null && (int) hit.x != hit.x && (int) hit.y != hit.y && (int) hit.z != hit.z;
     }
 
@@ -141,7 +144,7 @@ public class TileEntityTotemShelf extends TileEntity {
                 if (level != null) {
                     level.blockEvent(worldPosition, block, 1, 0);
                     level.updateNeighborsAt(worldPosition, block);
-                    level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Constants.BlockFlags.DEFAULT);
+                    level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
                 }
                 setChanged();
             }
@@ -154,7 +157,7 @@ public class TileEntityTotemShelf extends TileEntity {
         };
     }
 
-    public boolean giveOrTakeKnife(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack, BlockRayTraceResult result) {
+    public boolean giveOrTakeKnife(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, ItemStack stack, BlockHitResult result) {
         if (result != null) {
             if (state.getValue(BlockTotemShelf.BINDING_STATE) == BindingState.NOT_BOUND && knife.isEmpty() && stack.getItem() instanceof ItemRitualDagger
                     && NBTUtil.hasBoundEntity(stack) && isInterior(result.getLocation())) {
@@ -162,18 +165,18 @@ public class TileEntityTotemShelf extends TileEntity {
                 if (!world.isClientSide) {
                     addKnife(result.getLocation(), player.getLookAngle(), stack);
                     player.setItemInHand(hand, ItemStack.EMPTY);
-                    world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundCategory.MASTER, 1, 1);
+                    world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundSource.MASTER, 1, 1);
                     PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, knifePos, knife, knifeDirection), world, player.getLookAngle());
-                    setBindingState(state, BindingState.HEATING, Constants.BlockFlags.DEFAULT);
+                    setBindingState(state, BindingState.HEATING, Block.UPDATE_ALL);
                 }
                 return true;
             } else if (state.getValue(BlockTotemShelf.BINDING_STATE) == BindingState.BOUND && !knife.isEmpty() && stack.isEmpty()
                     && getObservedKnifeShape(pos, result, getKnifePos()) != null) {
                 if (!world.isClientSide) {
                     player.setItemInHand(hand, knife);
-                    world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundCategory.MASTER, 0.5F, 2);
-                    world.playSound(null, pos, SoundEvents.PLAYER_ATTACK_WEAK, SoundCategory.MASTER, 0.25F, 2);
-                    Vector3d vec = knifePos.add(knifeDirection.scale(-0.05));
+                    world.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundSource.MASTER, 0.5F, 2);
+                    world.playSound(null, pos, SoundEvents.PLAYER_ATTACK_WEAK, SoundSource.MASTER, 0.25F, 2);
+                    Vec3 vec = knifePos.add(knifeDirection.scale(-0.05));
                     removeKnife();
                     PacketNetwork.sendToAllAround(new PacketAddOrRemoveKnife(pos, vec, knife), world, vec);
                 }
@@ -183,7 +186,7 @@ public class TileEntityTotemShelf extends TileEntity {
         return false;
     }
 
-    public void addKnife(Vector3d knifePos, Vector3d knifeDirection, ItemStack knifeStack) {
+    public void addKnife(Vec3 knifePos, Vec3 knifeDirection, ItemStack knifeStack) {
         this.knifePos = knifePos;
         this.knifeDirection = knifeDirection;
         knife = knifeStack;
@@ -195,12 +198,12 @@ public class TileEntityTotemShelf extends TileEntity {
     }
 
     @Nullable
-    public static VoxelShape getObservedKnifeShape(BlockPos pos, BlockRayTraceResult target, Vector3d knifePos) {
+    public static VoxelShape getObservedKnifeShape(BlockPos pos, BlockHitResult target, Vec3 knifePos) {
         return knifePos == null ? null : getHitShape(BlockTotemShelf.SHAPE_KNIFE.move(knifePos.x - pos.getX(), knifePos.y - pos.getY(), knifePos.z - pos.getZ()), pos, target);
     }
 
     @Nullable
-    public static VoxelShape getHitShape(VoxelShape shape, BlockPos pos, BlockRayTraceResult target) {
+    public static VoxelShape getHitShape(VoxelShape shape, BlockPos pos, BlockHitResult target) {
         return shape.bounds().inflate(0.001, 0.001, 0.001).contains(target.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ())) ? shape : null;
     }
 
@@ -208,35 +211,35 @@ public class TileEntityTotemShelf extends TileEntity {
         if (level == null)
             return;
 
-        CompoundNBT nbt = getUpdateTag();
+        CompoundTag nbt = getUpdateTag();
         level.removeBlockEntity(worldPosition);
         level.setBlock(worldPosition, state.setValue(BlockTotemShelf.BINDING_STATE, bindingState), flags);
-        TileEntity te = level.getBlockEntity(worldPosition);
-        if (te instanceof TileEntityTotemShelf) {
-            te.load(state, nbt);
+        BlockEntity te = level.getBlockEntity(worldPosition);
+        if (te instanceof BlockEntityTotemShelf shelf) {
+            te.load(nbt);
             setChanged();
-            level.sendBlockUpdated(worldPosition, state, state, Constants.BlockFlags.DEFAULT);
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL);
             if (!level.isClientSide && bindingState.hasNext())
                 level.getBlockTicks().scheduleTick(worldPosition, state.getBlock(), 80);
 
             if (bindingState == BindingState.COOLING)
-                ((TileEntityTotemShelf) te).bindKnifeAndShelf();
+                shelf.bindKnifeAndShelf();
         }
 
         if (level.isClientSide)
             return;
 
         if (bindingState == BindingState.HEATING)
-            level.playSound(null, worldPosition, SoundsMod.BIND_SHELF.get(), SoundCategory.MASTER, 1, 1);
+            level.playSound(null, worldPosition, SoundsMod.BIND_SHELF.get(), SoundSource.MASTER, 1, 1);
     }
 
     private void bindKnifeAndShelf() {
-        if (!(level instanceof ServerWorld))
+        if (!(level instanceof ServerLevel serverWorld))
             return;
 
-        LivingEntity entity = NBTUtil.getBoundEntity(knife, (ServerWorld) level);
+        LivingEntity entity = NBTUtil.getBoundEntity(knife, serverWorld);
         if (entity == null || entity.distanceToSqr(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()) > Math.pow(Config.SERVER.maxDistanceToShelf.get(), 2)) {
-            charShelf((ServerWorld) level, worldPosition);
+            charShelf(serverWorld, worldPosition);
             return;
         }
         AtomicInteger count = new AtomicInteger();
@@ -269,7 +272,7 @@ public class TileEntityTotemShelf extends TileEntity {
         PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F, level.getBlockState(worldPosition).getCollisionShape(level, worldPosition).bounds().move(worldPosition).getCenter(), null), entity);
     }
 
-    private void charShelf(ServerWorld world, BlockPos pos) {
+    private void charShelf(ServerLevel world, BlockPos pos) {
         BlockState statePrimary = world.getBlockState(pos);
         PositionsTotemShelf positions = BlockTotemShelf.getTotemShelfPositions(statePrimary, world, pos);
         world.setBlockAndUpdate(pos, statePrimary.setValue(BlockTotemShelf.CHARRED, true));
@@ -281,7 +284,7 @@ public class TileEntityTotemShelf extends TileEntity {
         BlockTotemShelf.addShelfBreakingEffects(world, pos, statePrimary, true);
     }
 
-    public static void visitTotemShelves(LivingEntity entity, BiFunction<ServerWorld, TileEntityTotemShelf, ShelfVisitationResult> action) {
+    public static void visitTotemShelves(LivingEntity entity, BiFunction<ServerLevel, BlockEntityTotemShelf, ShelfVisitationResult> action) {
         MinecraftServer server = entity.level.getServer();
         if (server == null)
             return;
@@ -291,7 +294,7 @@ public class TileEntityTotemShelf extends TileEntity {
         Iterator<ResourceLocation> iteratorDim = dimensions.iterator();
         while (iteratorDim.hasNext()) {
             ResourceLocation dimensionKey = iteratorDim.next();
-            ServerWorld world = server.getLevel(NBTUtil.getDimension(dimensionKey));
+            ServerLevel world = server.getLevel(NBTUtil.getDimension(dimensionKey));
             if (world == null)
                 continue;
 
@@ -303,10 +306,10 @@ public class TileEntityTotemShelf extends TileEntity {
             Iterator<BlockPos> iteratorPos = positions.iterator();
             while (iteratorPos.hasNext()) {
                 BlockPos pos = iteratorPos.next();
-                TileEntity te = world.getBlockEntity(pos);
+                BlockEntity te = world.getBlockEntity(pos);
                 boolean foundShelf = false;
-                if (te instanceof TileEntityTotemShelf) {
-                    TileEntityTotemShelf totemShelf = (TileEntityTotemShelf) te;
+                if (te instanceof BlockEntityTotemShelf) {
+                    BlockEntityTotemShelf totemShelf = (BlockEntityTotemShelf) te;
                     if (entity.getUUID().equals(totemShelf.boundEntityId) && !world.getBlockState(pos).getValue(BlockTotemShelf.CHARRED)) {
                         ShelfVisitationResult result = action.apply(world, totemShelf);
                         foundShelf = !result.forceRemoval();
@@ -340,8 +343,8 @@ public class TileEntityTotemShelf extends TileEntity {
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        load(getBlockState(), pkt.getTag());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        load(pkt.getTag());
         if (level == null || !level.isClientSide)
             return;
 
@@ -351,19 +354,19 @@ public class TileEntityTotemShelf extends TileEntity {
                 return;
 
             BindingState bindingState = state.getValue(BlockTotemShelf.BINDING_STATE);
-            if (bindingState == BindingState.HEATING != this instanceof TileEntityTotemShelfBinding)
-                setBindingState(state, bindingState, Constants.BlockFlags.DEFAULT);
+            if (bindingState == BindingState.HEATING != this instanceof BlockEntityTotemShelfBinding)
+                setBindingState(state, bindingState, Block.UPDATE_ALL);
         });
     }
 
     @Override
     @Nullable
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return new ClientboundBlockEntityDataPacket(worldPosition, 0, getUpdateTag());
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        return save(new CompoundNBT());
+    public CompoundTag getUpdateTag() {
+        return save(new CompoundTag());
     }
 }

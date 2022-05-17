@@ -2,17 +2,17 @@ package com.github.phylogeny.boundtotems.network;
 
 import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.network.packet.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.PacketDistributor;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
+import net.minecraftforge.fmllegacy.network.NetworkRegistry;
+import net.minecraftforge.fmllegacy.network.PacketDistributor;
+import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -48,7 +48,7 @@ public class PacketNetwork {
         INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), msg);
     }
 
-    public static <MSG> void sendTo(MSG msg, ServerPlayerEntity player) {
+    public static <MSG> void sendTo(MSG msg, ServerPlayer player) {
         INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), msg);
     }
 
@@ -56,19 +56,19 @@ public class PacketNetwork {
         INSTANCE.send(PacketDistributor.ALL.noArg(), msg);
     }
 
-    public static <MSG> void sendToAllAround(MSG msg, World world, BlockPos pos) {
+    public static <MSG> void sendToAllAround(MSG msg, Level world, BlockPos pos) {
         sendToAllAround(msg, world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
     }
 
-    public static <MSG> void sendToAllAround(MSG msg, World world, Vector3d vec) {
+    public static <MSG> void sendToAllAround(MSG msg, Level world, Vec3 vec) {
         sendToAllAround(msg, world, vec.x, vec.y, vec.z);
     }
 
-    public static <MSG> void sendToAllAround(MSG msg, World world, double x, double y, double z) {
+    public static <MSG> void sendToAllAround(MSG msg, Level world, double x, double y, double z) {
         INSTANCE.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(x, y, z, 128, world.dimension())), msg);
     }
 
-    public static <MSG> void sendToDimension(MSG msg, RegistryKey<World> dimension) {
+    public static <MSG> void sendToDimension(MSG msg, ResourceKey<Level> dimension) {
         INSTANCE.send(PacketDistributor.DIMENSION.with(() -> dimension), msg);
     }
 
@@ -76,8 +76,8 @@ public class PacketNetwork {
         INSTANCE.send(PacketDistributor.SERVER.noArg(), msg);
     }
 
-    private static <MSG> void registerMessage(Class<MSG> messageType, BiConsumer<MSG, PacketBuffer> encoder,
-                                              Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {
+    private static <MSG> void registerMessage(Class<MSG> messageType, BiConsumer<MSG, FriendlyByteBuf> encoder,
+                                              Function<FriendlyByteBuf, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {
         INSTANCE.registerMessage(packetId++, messageType, encoder, decoder, messageConsumer);
     }
 }

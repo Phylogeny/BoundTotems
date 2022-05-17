@@ -2,13 +2,13 @@ package com.github.phylogeny.boundtotems.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +35,7 @@ public class VoxelShapeUtil {
     }
 
     public static VoxelShape combineAll(Collection<VoxelShape> shapes) {
-        return VoxelShapes.or(VoxelShapes.empty(), shapes.toArray(new VoxelShape[0]));
+        return Shapes.or(Shapes.empty(), shapes.toArray(new VoxelShape[0]));
     }
 
     public static Collection<VoxelShape[]> getRotatedVoxelShapes(Collection<VoxelShape> shapes) {
@@ -75,6 +75,6 @@ public class VoxelShapeUtil {
                 break;
             default:
         }
-        return VoxelShapes.box(startX, shape.min(Axis.Y), startZ, endX, shape.max(Axis.Y), endZ);
+        return Shapes.box(startX, shape.min(Axis.Y), startZ, endX, shape.max(Axis.Y), endZ);
     }
 }

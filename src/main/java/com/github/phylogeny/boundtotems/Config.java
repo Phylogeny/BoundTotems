@@ -8,6 +8,7 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import java.util.List;
@@ -134,12 +135,12 @@ public class Config {
     public static final Server SERVER = new Server();
 
     @SubscribeEvent
-    public void onLoad(final ModConfig.Loading configEvent) {
+    public void onLoad(final ModConfigEvent.Loading configEvent) {
         BoundTotems.LOGGER.debug("Loaded forge config file {}", configEvent.getConfig().getFileName());
     }
 
     @SubscribeEvent
-    public void onFileChange(final ModConfig.Reloading configEvent) {
+    public void onFileChange(final ModConfigEvent.Reloading configEvent) {
         BoundTotems.LOGGER.fatal("Forge config just got changed on the file system!");
     }
 

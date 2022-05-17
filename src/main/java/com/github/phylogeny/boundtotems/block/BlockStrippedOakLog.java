@@ -1,15 +1,15 @@
 package com.github.phylogeny.boundtotems.block;
 
 import com.github.phylogeny.boundtotems.item.ItemCarvingKnife;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.RotatedPillarBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 
@@ -22,13 +22,13 @@ public class BlockStrippedOakLog extends RotatedPillarBlock {
     }
 
     @Override
-    public SoundType getSoundType(BlockState state, IWorldReader world, BlockPos pos, @Nullable Entity entity) {
+    public SoundType getSoundType(BlockState state, LevelReader world, BlockPos pos, @Nullable Entity entity) {
         return getSoundType(state, entity);
     }
 
     public static SoundType getSoundType(BlockState state, Entity entity) {
-        if (entity instanceof LivingEntity
-                && ((LivingEntity) entity).getItemBySlot(EquipmentSlotType.MAINHAND).getItem() instanceof ItemCarvingKnife)
+        if (entity instanceof LivingEntity livingEntity
+                && livingEntity.getItemBySlot(EquipmentSlot.MAINHAND).getItem() instanceof ItemCarvingKnife)
             return CARVE_WOOD;
 
         return state.getSoundType();

@@ -2,11 +2,11 @@ package com.github.phylogeny.boundtotems.capability;
 
 import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.util.CapabilityUtil;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,10 +17,6 @@ import java.util.Set;
 
 @Mod.EventBusSubscriber
 public class ShelfPositionsEvents {
-    public static void register() {
-        CapabilityManager.INSTANCE.register(IShelfPositions.class, new ShelfPositionsStorage(), ShelfPositions::new);
-    }
-
     @SubscribeEvent
     public static void attachCapabilities(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof LivingEntity)
@@ -30,8 +26,11 @@ public class ShelfPositionsEvents {
     @SubscribeEvent
     public static void syncDataForClonedPlayers(PlayerEvent.Clone event) {
         if (event.isWasDeath()) {
-            Hashtable<ResourceLocation, Set<BlockPos>> positions = CapabilityUtil.getShelfPositions(event.getOriginal()).getPositions();
+            Player deadPlayer = event.getOriginal();
+            deadPlayer.reviveCaps();
+            Hashtable<ResourceLocation, Set<BlockPos>> positions = CapabilityUtil.getShelfPositions(deadPlayer).getPositions();
             CapabilityUtil.getShelfPositions(event.getPlayer()).setPositions(positions);
+            deadPlayer.invalidateCaps();
         }
     }
 }

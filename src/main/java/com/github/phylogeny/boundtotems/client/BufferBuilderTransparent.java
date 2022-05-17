@@ -2,12 +2,12 @@ package com.github.phylogeny.boundtotems.client;
 
 import com.github.phylogeny.boundtotems.util.ReflectionUtil;
 import com.google.common.base.Suppliers;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -17,19 +17,19 @@ import java.util.function.Supplier;
 @OnlyIn(Dist.CLIENT)
 public class BufferBuilderTransparent extends BufferBuilder {
     /**
-     * Differs from {@link net.minecraft.client.renderer.BufferBuilder} in this alpha value only
+     * Differs from {@link BufferBuilder} in this alpha value only
      */
     public static int alpha;
 
-    private static final Constructor<IRenderTypeBuffer.Impl> RENDER_TYPE_BUFFER = ObfuscationReflectionHelper.findConstructor(IRenderTypeBuffer.Impl.class, BufferBuilder.class, Map.class);
-    private static final Supplier<IRenderTypeBuffer.Impl> TYPE_BUFFER = Suppliers.memoize(BufferBuilderTransparent::createRenderTypeBuffer);
+    private static final Constructor<MultiBufferSource.BufferSource> RENDER_TYPE_BUFFER = ObfuscationReflectionHelper.findConstructor(MultiBufferSource.BufferSource.class, BufferBuilder.class, Map.class);
+    private static final Supplier<MultiBufferSource.BufferSource> TYPE_BUFFER = Suppliers.memoize(BufferBuilderTransparent::createRenderTypeBuffer);
     public static final BufferBuilderTransparent INSTANCE = new BufferBuilderTransparent(2097152);
 
-    private static IRenderTypeBuffer.Impl createRenderTypeBuffer() {
+    private static MultiBufferSource.BufferSource createRenderTypeBuffer() {
         return ReflectionUtil.getNewInstance(RENDER_TYPE_BUFFER, BufferBuilderTransparent.INSTANCE, new HashMap<>());
     }
 
-    public static IRenderTypeBuffer.Impl getRenderTypeBuffer() {
+    public static MultiBufferSource.BufferSource getRenderTypeBuffer() {
         return TYPE_BUFFER.get();
     }
 
@@ -38,7 +38,7 @@ public class BufferBuilderTransparent extends BufferBuilder {
     }
 
     @Override
-    public IVertexBuilder color(int red, int green, int blue, int alpha) {
+    public VertexConsumer color(int red, int green, int blue, int alpha) {
         return super.color(red, green, blue, BufferBuilderTransparent.alpha);
     }
 

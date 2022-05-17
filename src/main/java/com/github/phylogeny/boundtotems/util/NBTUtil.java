@@ -1,19 +1,19 @@
 package com.github.phylogeny.boundtotems.util;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -45,16 +45,16 @@ public class NBTUtil {
         return hasBoundEntity(stack.getTag());
     }
 
-    public static boolean hasBoundEntity(CompoundNBT nbt) {
+    public static boolean hasBoundEntity(CompoundTag nbt) {
         return nbt != null && nbt.contains(BOUND_ENTITY);
     }
 
-    public static UUID readUniqueId(CompoundNBT nbt) {
+    public static UUID readUniqueId(CompoundTag nbt) {
         return nbt.hasUUID(ID) ? nbt.getUUID(ID) : Util.NIL_UUID;
     }
 
-    public static CompoundNBT writeUniqueId(UUID id) {
-        CompoundNBT nbt = new CompoundNBT();
+    public static CompoundTag writeUniqueId(UUID id) {
+        CompoundTag nbt = new CompoundTag();
         nbt.putUUID(ID, id);
         return nbt;
     }
@@ -76,12 +76,12 @@ public class NBTUtil {
 
     @Nullable
     private static UUID getId(ItemStack stack, String key) {
-        CompoundNBT nbt = stack.getTagElement(key);
+        CompoundTag nbt = stack.getTagElement(key);
         return nbt == null ? null : readUniqueId(nbt);
     }
 
     @Nullable
-    public static LivingEntity getBoundEntity(ItemStack stack, ServerWorld world) {
+    public static LivingEntity getBoundEntity(ItemStack stack, ServerLevel world) {
         UUID id = getBoundEntityId(stack);
         if (id != null) {
             Entity entity = world.getEntity(id);
@@ -93,12 +93,12 @@ public class NBTUtil {
 
     @Nullable
     public static String getBoundEntityName(ItemStack stack) {
-        CompoundNBT nbt = stack.getTagElement(BOUND_ENTITY);
+        CompoundTag nbt = stack.getTagElement(BOUND_ENTITY);
         return nbt == null ? null : nbt.getString(ENTITY_NAME);
     }
 
     public static ItemStack copyBoundEntity(ItemStack source, ItemStack target) {
-        CompoundNBT nbt = source.getTagElement(BOUND_ENTITY);
+        CompoundTag nbt = source.getTagElement(BOUND_ENTITY);
         if (nbt != null)
             setBoundEntity(target, readUniqueId(nbt), nbt.getString(ENTITY_NAME));
 
@@ -114,7 +114,7 @@ public class NBTUtil {
     }
 
     public static void setBoundEntity(ItemStack stack, UUID entityId, String entityDisplayName) {
-        CompoundNBT nbt = writeUniqueId(entityId);
+        CompoundTag nbt = writeUniqueId(entityId);
         nbt.putString(ENTITY_NAME, entityDisplayName);
         stack.addTagElement(BOUND_ENTITY, nbt);
     }
@@ -124,72 +124,72 @@ public class NBTUtil {
         return entityId != null && entity.getUUID().equals(entityId);
     }
 
-    public static void addBoundEntityInformation(ItemStack stack, List<ITextComponent> tooltip) {
+    public static void addBoundEntityInformation(ItemStack stack, List<Component> tooltip) {
         String name = getBoundEntityName(stack);
         if (name != null) {
-            LangUtil.addTooltipWithFormattedSuffix(tooltip, "entity.name", name, TextFormatting.GRAY);
+            LangUtil.addTooltipWithFormattedSuffix(tooltip, "entity.name", name, ChatFormatting.GRAY);
             if (Screen.hasShiftDown())
-                LangUtil.addTooltipWithFormattedSuffix(tooltip, "entity.uuid", Objects.requireNonNull(getBoundEntityId(stack)).toString(), TextFormatting.GRAY);
+                LangUtil.addTooltipWithFormattedSuffix(tooltip, "entity.uuid", Objects.requireNonNull(getBoundEntityId(stack)).toString(), ChatFormatting.GRAY);
             else
                 LangUtil.addTooltip(tooltip, "entity.more_info");
         }
     }
 
-    public static boolean hasBoundLocation(CompoundNBT nbt) {
+    public static boolean hasBoundLocation(CompoundTag nbt) {
         return nbt != null && nbt.contains(BOUND_LOCATION);
     }
 
     public static void teleportEntity(ItemStack stack, LivingEntity entity) {
-        CompoundNBT nbt = stack.getTagElement(BOUND_LOCATION);
+        CompoundTag nbt = stack.getTagElement(BOUND_LOCATION);
         if (nbt != null)
             EntityUtil.teleportEntity(entity, getDimension(new ResourceLocation(nbt.getString(DIMENSION))), readVec(nbt), nbt.getFloat(PITCH), nbt.getFloat(YAW));
     }
 
     public static void copyBoundLocation(ItemStack source, ItemStack target) {
-        CompoundNBT nbt = source.getTagElement(BOUND_LOCATION);
+        CompoundTag nbt = source.getTagElement(BOUND_LOCATION);
         if (nbt != null)
             setBoundLocation(target, readVec(nbt), nbt.getString(DIMENSION), nbt.getFloat(PITCH), nbt.getFloat(YAW));
     }
 
     public static void setBoundLocation(ItemStack stack, LivingEntity entity) {
         setBoundLocation(stack, entity.position(),
-                getDimensionKey(entity.getCommandSenderWorld()).toString(), entity.xRot, entity.yRot);
+                getDimensionKey(entity.getCommandSenderWorld()).toString(), entity.getXRot(), entity.getYRot());
     }
 
-    public static void setBoundLocation(ItemStack stack, Vector3d pos, String dimension, float pitch, float yaw) {
-        CompoundNBT nbt = writeVec(pos);
+    public static void setBoundLocation(ItemStack stack, Vec3 pos, String dimension, float pitch, float yaw) {
+        CompoundTag nbt = writeVec(pos);
         nbt.putString(DIMENSION, dimension);
         nbt.putFloat(PITCH, pitch);
         nbt.putFloat(YAW, yaw);
         stack.addTagElement(BOUND_LOCATION, nbt);
     }
 
-    public static RegistryKey<World> getDimension(ResourceLocation key) {
-        return RegistryKey.create(Registry.DIMENSION_REGISTRY, key);
+    public static ResourceKey<Level> getDimension(ResourceLocation key) {
+        return ResourceKey.create(Registry.DIMENSION_REGISTRY, key);
     }
 
-    public static ResourceLocation getDimensionKey(World world) {
+    public static ResourceLocation getDimensionKey(Level world) {
         return world.dimension().location();
     }
 
-    private static Vector3d readVec(CompoundNBT nbt) {
-        return new Vector3d(nbt.getDouble("X"), nbt.getDouble("Y"), nbt.getDouble("Z"));
+    private static Vec3 readVec(CompoundTag nbt) {
+        return new Vec3(nbt.getDouble("X"), nbt.getDouble("Y"), nbt.getDouble("Z"));
     }
 
-    private static CompoundNBT writeVec(Vector3d vec) {
-        CompoundNBT nbt = new CompoundNBT();
+    private static CompoundTag writeVec(Vec3 vec) {
+        CompoundTag nbt = new CompoundTag();
         nbt.putDouble("X", vec.x);
         nbt.putDouble("Y", vec.y);
         nbt.putDouble("Z", vec.z);
         return nbt;
     }
 
-    public static void addBoundLocationInformation(ItemStack stack, List<ITextComponent> tooltip, boolean fullDimensionName) {
-        CompoundNBT nbt = stack.getTagElement(BOUND_LOCATION);
+    public static void addBoundLocationInformation(ItemStack stack, List<Component> tooltip, boolean fullDimensionName) {
+        CompoundTag nbt = stack.getTagElement(BOUND_LOCATION);
         if (nbt == null)
             return;
 
-        Vector3d pos = readVec(nbt);
+        Vec3 pos = readVec(nbt);
         String dimension = nbt.getString(DIMENSION);
         if (!fullDimensionName)
             dimension = dimension.substring(dimension.indexOf(":") + 1);
@@ -198,21 +198,21 @@ public class NBTUtil {
                 Integer.toString((int) pos.x), Integer.toString((int) pos.y), Integer.toString((int) pos.z));
     }
 
-    public static boolean isKnifeBound(CompoundNBT nbt) {
+    public static boolean isKnifeBound(CompoundTag nbt) {
         return nbt != null && nbt.getBoolean(BOUND_KNIFE);
     }
 
-    public static void bindKnife(CompoundNBT nbt) {
+    public static void bindKnife(CompoundTag nbt) {
         nbt.putBoolean(BOUND_KNIFE, true);
     }
 
-    public static void writeObjectToSubTag(CompoundNBT nbt, String key, Consumer<CompoundNBT> nbtWriter) {
-        CompoundNBT nbtSub = new CompoundNBT();
+    public static void writeObjectToSubTag(CompoundTag nbt, String key, Consumer<CompoundTag> nbtWriter) {
+        CompoundTag nbtSub = new CompoundTag();
         nbtWriter.accept(nbtSub);
         nbt.put(key, nbtSub);
     }
 
-    public static <T> T readObjectFromSubTag(CompoundNBT nbt, String key, Function<CompoundNBT, T> nbtReader) {
+    public static <T> T readObjectFromSubTag(CompoundTag nbt, String key, Function<CompoundTag, T> nbtReader) {
         return nbtReader.apply(nbt.getCompound(key));
     }
 
@@ -221,7 +221,7 @@ public class NBTUtil {
     }
 
     @Nullable
-    public static <T> T readNullableObject(CompoundNBT nbt, String key, Function<String, T> nbtReader) {
+    public static <T> T readNullableObject(CompoundTag nbt, String key, Function<String, T> nbtReader) {
         return nbt.contains(key) ? nbtReader.apply(key) : null;
     }
 }

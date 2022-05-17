@@ -1,10 +1,10 @@
 package com.github.phylogeny.boundtotems.util;
 
 import com.github.phylogeny.boundtotems.BoundTotems;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
@@ -18,19 +18,19 @@ public class LangUtil {
         return join(ArrayUtils.addAll(new String[]{category, BoundTotems.MOD_ID}, path));
     }
 
-    public static TranslationTextComponent getLocalizedText(String category, String name, Object... args) {
-        return new TranslationTextComponent(getKey(category, name), args);
+    public static TranslatableComponent getLocalizedText(String category, String name, Object... args) {
+        return new TranslatableComponent(getKey(category, name), args);
     }
 
-    public static TranslationTextComponent getTooltip(String name, Object... args) {
+    public static TranslatableComponent getTooltip(String name, Object... args) {
         return getLocalizedText("tooltip", name, args);
     }
 
-    public static void addTooltip(List<ITextComponent> tooltip, String name, Object... args) {
+    public static void addTooltip(List<Component> tooltip, String name, Object... args) {
         tooltip.add(getTooltip(name, args));
     }
 
-    public static void addTooltipWithFormattedSuffix(List<ITextComponent> tooltip, String name, String suffix, TextFormatting... formatting) {
-        tooltip.add(getTooltip(name).append(new StringTextComponent(suffix).withStyle(formatting)));
+    public static void addTooltipWithFormattedSuffix(List<Component> tooltip, String name, String suffix, ChatFormatting... formatting) {
+        tooltip.add(getTooltip(name).append(new TextComponent(suffix).withStyle(formatting)));
     }
 }

@@ -4,10 +4,10 @@ import com.github.phylogeny.boundtotems.BoundTotems;
 import com.github.phylogeny.boundtotems.block.BlockTotemShelf;
 import com.github.phylogeny.boundtotems.item.*;
 import com.google.common.base.Suppliers;
-import net.minecraft.block.Block;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.item.*;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.fmllegacy.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -56,7 +56,7 @@ public class ItemsMod {
         return new Item.Properties().tab(CREATIVE_TAB);
     }
 
-    private static final ItemGroup CREATIVE_TAB = new ItemGroup(BoundTotems.MOD_ID) {
+    private static final CreativeModeTab CREATIVE_TAB = new CreativeModeTab(BoundTotems.MOD_ID) {
         @Override
         public ItemStack makeIcon() {
             return new ItemStack(BOUND_TOTEM.get());

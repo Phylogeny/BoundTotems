@@ -8,24 +8,28 @@ import com.github.phylogeny.boundtotems.util.LangUtil;
 import com.github.phylogeny.boundtotems.util.NBTUtil;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CauldronBlock;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.*;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -59,8 +63,8 @@ public class ItemRitualDagger extends Item {
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotType slot, ItemStack stack) {
-        return slot != EquipmentSlotType.MAINHAND || State.get(stack) != State.BOUND ? super.getAttributeModifiers(slot, stack)
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        return slot != EquipmentSlot.MAINHAND || State.get(stack) != State.BOUND ? super.getAttributeModifiers(slot, stack)
                 : ImmutableMultimap.of(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", 5, AttributeModifier.Operation.ADDITION));
     }
 
@@ -70,17 +74,17 @@ public class ItemRitualDagger extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
         NBTUtil.addBoundEntityInformation(stack, tooltip);
     }
 
     @Override
-    public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-        ActionResultType result = ActionResultType.PASS;
+    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+        InteractionResult result = InteractionResult.PASS;
         ItemStack stack = player.getItemInHand(hand);
         if (player.isShiftKeyDown()) {
             setBoundEntity(stack, player, player, true);
-            result = ActionResultType.SUCCESS;
+            result = InteractionResult.SUCCESS;
         } else if (NBTUtil.hasBoundEntity(stack)) {
             ItemEntity entityTotem = EntityUtil.rayTraceEntities(world, player, ItemEntity.class, box -> box.expandTowards(0, 0.25, 0));
             ItemStack stackBound = ItemsMod.getBoundItem(entityTotem);
@@ -89,15 +93,15 @@ public class ItemRitualDagger extends Item {
                     entityTotem.setItem(NBTUtil.copyBoundEntity(stack, stackBound));
                     sendGhostPacket(player, entityTotem);
                 }
-                result = ActionResultType.SUCCESS;
+                result = InteractionResult.SUCCESS;
                 player.swing(hand);
             }
         }
-        return new ActionResult<>(result, stack);
+        return new InteractionResultHolder<>(result, stack);
     }
 
-    private boolean setBoundEntity(ItemStack stack, PlayerEntity player, Entity entity, boolean attackSelf) {
-        if (!(player instanceof ServerPlayerEntity) || !(entity instanceof LivingEntity))
+    private boolean setBoundEntity(ItemStack stack, Player player, Entity entity, boolean attackSelf) {
+        if (!(player instanceof ServerPlayer) || !(entity instanceof LivingEntity))
             return false;
 
         if (attackSelf) {
@@ -109,31 +113,28 @@ public class ItemRitualDagger extends Item {
     }
 
     @Override
-    public boolean onLeftClickEntity(ItemStack stack, PlayerEntity player, Entity entity) {
+    public boolean onLeftClickEntity(ItemStack stack, Player player, Entity entity) {
         if (setBoundEntity(stack, player, entity, false))
             sendGhostPacket(player, entity);
 
         return false;
     }
 
-    private void sendGhostPacket(PlayerEntity player, Entity entity) {
+    private void sendGhostPacket(Player player, Entity entity) {
         PacketNetwork.sendToAllTrackingAndSelf(new PacketAddGhost(entity, 0.2F, null, player), entity);
     }
 
     @Override
-    public ActionResultType useOn(ItemUseContext context) {
+    public InteractionResult useOn(UseOnContext context) {
         if (State.get(context.getItemInHand()) == State.BLOODY && NBTUtil.hasBoundEntity(context.getItemInHand())) {
             BlockState state = context.getLevel().getBlockState(context.getClickedPos());
-            if (state.getBlock() instanceof CauldronBlock) {
-                int level = state.getValue(CauldronBlock.LEVEL);
-                if (level > 0) {
-                    ((CauldronBlock) state.getBlock()).setWaterLevel(context.getLevel(), context.getClickedPos(), state, level - 1);
-                    context.getItemInHand().getOrCreateTag().remove(NBTUtil.BOUND_ENTITY);
-                    context.getLevel().playSound(null, context.getClickedPos(), SoundEvents.BOAT_PADDLE_WATER, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                    return ActionResultType.SUCCESS;
-                }
+            if (state.getBlock() instanceof LayeredCauldronBlock && state.getValue(LayeredCauldronBlock.LEVEL) > 0) {
+                LayeredCauldronBlock.lowerFillLevel(state, context.getLevel(), context.getClickedPos());
+                context.getItemInHand().getOrCreateTag().remove(NBTUtil.BOUND_ENTITY);
+                context.getLevel().playSound(null, context.getClickedPos(), SoundEvents.BOAT_PADDLE_WATER, SoundSource.BLOCKS, 1.0F, 1.0F);
+                return InteractionResult.SUCCESS;
             }
         }
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 }

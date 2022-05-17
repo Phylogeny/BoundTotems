@@ -3,11 +3,11 @@ package com.github.phylogeny.boundtotems.network.packet;
 import com.github.phylogeny.boundtotems.Config;
 import com.github.phylogeny.boundtotems.client.ClientEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.SoundEvents;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.Entity;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -25,13 +25,13 @@ public class PacketTotemParticlesAndSound {
         this.sound = sound;
     }
 
-    public static void encode(PacketTotemParticlesAndSound msg, PacketBuffer buf) {
+    public static void encode(PacketTotemParticlesAndSound msg, FriendlyByteBuf buf) {
         buf.writeInt(msg.entityId);
         buf.writeBoolean(msg.particles);
         buf.writeBoolean(msg.sound);
     }
 
-    public static PacketTotemParticlesAndSound decode(PacketBuffer buf) {
+    public static PacketTotemParticlesAndSound decode(FriendlyByteBuf buf) {
         return new PacketTotemParticlesAndSound(buf.readInt(), buf.readBoolean(), buf.readBoolean());
     }
 

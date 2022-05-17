@@ -2,9 +2,9 @@ package com.github.phylogeny.boundtotems.network.packet;
 
 import com.github.phylogeny.boundtotems.init.ItemsMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -15,11 +15,11 @@ public class PacketTotemAnimation {
         this.teleporting = teleporting;
     }
 
-    public static void encode(PacketTotemAnimation msg, PacketBuffer buf) {
+    public static void encode(PacketTotemAnimation msg, FriendlyByteBuf buf) {
         buf.writeBoolean(msg.teleporting);
     }
 
-    public static PacketTotemAnimation decode(PacketBuffer buf) {
+    public static PacketTotemAnimation decode(FriendlyByteBuf buf) {
         return new PacketTotemAnimation(buf.readBoolean());
     }
 

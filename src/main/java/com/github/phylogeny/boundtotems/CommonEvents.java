@@ -5,13 +5,13 @@ import com.github.phylogeny.boundtotems.block.PositionsTotemShelf;
 import com.github.phylogeny.boundtotems.command.LocateCommand;
 import com.github.phylogeny.boundtotems.init.BlocksMod;
 import com.github.phylogeny.boundtotems.item.ItemCarvingKnife;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.loot.LootPool;
-import net.minecraft.loot.LootTables;
-import net.minecraft.loot.TableLootEntry;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.entries.LootTableReference;
 import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -21,11 +21,11 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 @EventBusSubscriber
 public class CommonEvents {
     private static final ResourceLocation LOOT_TABLE = BoundTotems.getResourceLoc("chests/mod_tools");
-    private static final ResourceLocation LOOT_TABLE_MANSION = BoundTotems.getResourceLoc(LootTables.WOODLAND_MANSION.getPath());
+    private static final ResourceLocation LOOT_TABLE_MANSION = BoundTotems.getResourceLoc(BuiltInLootTables.WOODLAND_MANSION.getPath());
 
     @SubscribeEvent
     public static void swapStrippedOakBlocks(PlayerInteractEvent.LeftClickBlock event) {
-        if (event.getHand() != Hand.MAIN_HAND || !(event.getItemStack().getItem() instanceof ItemCarvingKnife))
+        if (event.getHand() != InteractionHand.MAIN_HAND || !(event.getItemStack().getItem() instanceof ItemCarvingKnife))
             return;
 
         BlockState state = event.getWorld().getBlockState(event.getPos());
@@ -42,7 +42,7 @@ public class CommonEvents {
         String path = event.getName().getPath();
         if (path.startsWith("chests")) {
             ResourceLocation table = path.equals(LOOT_TABLE_MANSION.getPath()) ? LOOT_TABLE_MANSION : LOOT_TABLE;
-            event.getTable().addPool(LootPool.lootPool().name(path + "_" + BoundTotems.MOD_ID).add(TableLootEntry.lootTableReference(table)).build());
+            event.getTable().addPool(LootPool.lootPool().name(path + "_" + BoundTotems.MOD_ID).add(LootTableReference.lootTableReference(table)).build());
         }
     }
 
